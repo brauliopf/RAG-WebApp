@@ -7,14 +7,16 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "@/hooks/use-toast";
 import { Link } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
 
 interface Document {
   id: string;
-  name: string;
-  type: string;
-  size: number;
+  title: string;
+  file_type: string;
+  file_size: number;
   status: "processing" | "completed" | "error";
-  uploadedAt: Date;
+  created_at: string;
+  pinecone_id?: string;
 }
 
 const Admin = () => {
@@ -23,24 +25,76 @@ const Admin = () => {
   const [dragActive, setDragActive] = useState(false);
 
   useEffect(() => {
-    // Load documents from localStorage on component mount
-    const savedDocs = localStorage.getItem("ragDocuments");
-    if (savedDocs) {
-      try {
-        const parsedDocs = JSON.parse(savedDocs).map((doc: any) => ({
-          ...doc,
-          uploadedAt: new Date(doc.uploadedAt)
-        }));
-        setDocuments(parsedDocs);
-      } catch (error) {
-        console.error("Error loading documents:", error);
-      }
-    }
+    loadDocuments();
   }, []);
 
-  const saveDocuments = (docs: Document[]) => {
-    localStorage.setItem("ragDocuments", JSON.stringify(docs));
-    setDocuments(docs);
+  const loadDocuments = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('documents')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+
+      const documentsWithStatus = data.map(doc => ({
+        ...doc,
+        status: doc.pinecone_id ? 'completed' as const : 'processing' as const
+      }));
+
+      setDocuments(documentsWithStatus);
+    } catch (error) {
+      console.error('Error loading documents:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load documents.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const saveDocumentToSupabase = async (file: File, status: Document['status'] = 'processing') => {
+    try {
+      const { data, error } = await supabase
+        .from('documents')
+        .insert({
+          title: file.name,
+          file_type: file.type || 'text/markdown',
+          file_size: file.size,
+          content: '', // Will be filled by the API
+          pinecone_id: status === 'completed' ? `pinecone_${Date.now()}` : null
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+      return { ...data, status };
+    } catch (error) {
+      console.error('Error saving document:', error);
+      return null;
+    }
+  };
+
+  const updateDocumentStatus = async (id: string, status: Document['status'], pinecone_id?: string) => {
+    try {
+      const updateData: any = {};
+      if (pinecone_id) {
+        updateData.pinecone_id = pinecone_id;
+      }
+
+      const { error } = await supabase
+        .from('documents')
+        .update(updateData)
+        .eq('id', id);
+
+      if (error) throw error;
+
+      setDocuments(prev => prev.map(doc => 
+        doc.id === id ? { ...doc, status, pinecone_id } : doc
+      ));
+    } catch (error) {
+      console.error('Error updating document:', error);
+    }
   };
 
   const handleFileUpload = async (file: File) => {
@@ -59,19 +113,17 @@ const Admin = () => {
       return;
     }
 
-    const newDoc: Document = {
-      id: `doc_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-      name: file.name,
-      type: file.type || 'text/markdown',
-      size: file.size,
-      status: "processing",
-      uploadedAt: new Date(),
-    };
-
-    const updatedDocs = [...documents, newDoc];
-    saveDocuments(updatedDocs);
-
     setIsUploading(true);
+
+    // Save to Supabase first
+    const newDoc = await saveDocumentToSupabase(file, 'processing');
+    if (!newDoc) {
+      setIsUploading(false);
+      return;
+    }
+
+    // Update local state
+    setDocuments(prev => [newDoc, ...prev]);
 
     try {
       const formData = new FormData();
@@ -87,10 +139,7 @@ const Admin = () => {
       }
 
       // Update document status to completed
-      const completedDocs = updatedDocs.map(doc => 
-        doc.id === newDoc.id ? { ...doc, status: "completed" as const } : doc
-      );
-      saveDocuments(completedDocs);
+      await updateDocumentStatus(newDoc.id, 'completed', `pinecone_${Date.now()}`);
 
       toast({
         title: "Document uploaded successfully",
@@ -100,10 +149,7 @@ const Admin = () => {
       console.error("Error uploading file:", error);
       
       // Update document status to error
-      const errorDocs = updatedDocs.map(doc => 
-        doc.id === newDoc.id ? { ...doc, status: "error" as const } : doc
-      );
-      saveDocuments(errorDocs);
+      await updateDocumentStatus(newDoc.id, 'error');
 
       toast({
         title: "Upload failed",
@@ -127,13 +173,28 @@ const Admin = () => {
     if (file) handleFileUpload(file);
   };
 
-  const deleteDocument = (id: string) => {
-    const updatedDocs = documents.filter(doc => doc.id !== id);
-    saveDocuments(updatedDocs);
-    toast({
-      title: "Document deleted",
-      description: "The document has been removed from your knowledge base.",
-    });
+  const deleteDocument = async (id: string, title: string) => {
+    try {
+      const { error } = await supabase
+        .from('documents')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+
+      setDocuments(prev => prev.filter(doc => doc.id !== id));
+      toast({
+        title: "Document deleted",
+        description: "The document has been removed from your knowledge base.",
+      });
+    } catch (error) {
+      console.error('Error deleting document:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete document.",
+        variant: "destructive",
+      });
+    }
   };
 
   const getStatusIcon = (status: Document['status']) => {
@@ -244,9 +305,9 @@ const Admin = () => {
                     <div className="flex items-center space-x-4">
                       <FileText className="h-8 w-8 text-blue-600" />
                       <div>
-                        <h4 className="font-semibold">{doc.name}</h4>
+                        <h4 className="font-semibold">{doc.title}</h4>
                         <p className="text-sm text-gray-600">
-                          {formatFileSize(doc.size)} • Uploaded {doc.uploadedAt.toLocaleDateString()}
+                          {formatFileSize(doc.file_size)} • Uploaded {new Date(doc.created_at).toLocaleDateString()}
                         </p>
                       </div>
                     </div>
@@ -258,7 +319,7 @@ const Admin = () => {
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => deleteDocument(doc.id)}
+                        onClick={() => deleteDocument(doc.id, doc.title)}
                         className="text-red-600 hover:text-red-700 hover:bg-red-50"
                       >
                         <Trash2 className="h-4 w-4" />

@@ -70,6 +70,7 @@ export type Database = {
           file_type: string
           id: string
           metadata: Json | null
+          pinecone_id: string | null
           title: string
           updated_at: string | null
         }
@@ -80,6 +81,7 @@ export type Database = {
           file_type: string
           id?: string
           metadata?: Json | null
+          pinecone_id?: string | null
           title: string
           updated_at?: string | null
         }
@@ -90,6 +92,7 @@ export type Database = {
           file_type?: string
           id?: string
           metadata?: Json | null
+          pinecone_id?: string | null
           title?: string
           updated_at?: string | null
         }

@@ -6,19 +6,21 @@ import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { toast } from "@/hooks/use-toast";
 import { Link } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
 
 interface Message {
   id: string;
   content: string;
-  isUser: boolean;
-  timestamp: Date;
+  role: string;
+  thread_id: string;
+  created_at: string;
 }
 
 const Chat = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputValue, setInputValue] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [threadId] = useState(() => `thread_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`);
+  const [threadId, setThreadId] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
@@ -29,17 +31,63 @@ const Chat = () => {
     scrollToBottom();
   }, [messages]);
 
+  useEffect(() => {
+    createNewThread();
+  }, []);
+
+  const createNewThread = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('chat_threads')
+        .insert({
+          title: `Chat ${new Date().toLocaleString()}`
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+      setThreadId(data.id);
+    } catch (error) {
+      console.error('Error creating thread:', error);
+      toast({
+        title: "Error",
+        description: "Failed to create chat thread.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const saveMessage = async (content: string, role: string) => {
+    if (!threadId) return;
+
+    try {
+      const { data, error } = await supabase
+        .from('chat_messages')
+        .insert({
+          content,
+          role,
+          thread_id: threadId
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    } catch (error) {
+      console.error('Error saving message:', error);
+      return null;
+    }
+  };
+
   const sendMessage = async () => {
-    if (!inputValue.trim() || isLoading) return;
+    if (!inputValue.trim() || isLoading || !threadId) return;
 
-    const userMessage: Message = {
-      id: `msg_${Date.now()}_user`,
-      content: inputValue,
-      isUser: true,
-      timestamp: new Date(),
-    };
+    const userMessage = await saveMessage(inputValue, 'user');
+    if (userMessage) {
+      setMessages(prev => [...prev, userMessage]);
+    }
 
-    setMessages(prev => [...prev, userMessage]);
+    const userInput = inputValue;
     setInputValue("");
     setIsLoading(true);
 
@@ -50,7 +98,7 @@ const Chat = () => {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          question: inputValue,
+          question: userInput,
           thread_id: threadId,
         }),
       });
@@ -60,15 +108,14 @@ const Chat = () => {
       }
 
       const data = await response.json();
-      
-      const assistantMessage: Message = {
-        id: `msg_${Date.now()}_assistant`,
-        content: data.answer || "I apologize, but I couldn't generate a response. Please try again.",
-        isUser: false,
-        timestamp: new Date(),
-      };
+      const assistantMessage = await saveMessage(
+        data.answer || "I apologize, but I couldn't generate a response. Please try again.",
+        'assistant'
+      );
 
-      setMessages(prev => [...prev, assistantMessage]);
+      if (assistantMessage) {
+        setMessages(prev => [...prev, assistantMessage]);
+      }
     } catch (error) {
       console.error("Error sending message:", error);
       toast({
@@ -77,13 +124,13 @@ const Chat = () => {
         variant: "destructive",
       });
       
-      const errorMessage: Message = {
-        id: `msg_${Date.now()}_error`,
-        content: "I'm having trouble connecting right now. Please try again in a moment.",
-        isUser: false,
-        timestamp: new Date(),
-      };
-      setMessages(prev => [...prev, errorMessage]);
+      const errorMessage = await saveMessage(
+        "I'm having trouble connecting right now. Please try again in a moment.",
+        'assistant'
+      );
+      if (errorMessage) {
+        setMessages(prev => [...prev, errorMessage]);
+      }
     } finally {
       setIsLoading(false);
     }
@@ -133,19 +180,19 @@ const Chat = () => {
             )}
             
             {messages.map((message) => (
-              <div key={message.id} className={`flex ${message.isUser ? "justify-end" : "justify-start"}`}>
-                <div className={`flex max-w-[80%] ${message.isUser ? "flex-row-reverse" : "flex-row"} items-start space-x-3`}>
-                  <div className={`p-2 rounded-full ${message.isUser ? "bg-blue-600 ml-3" : "bg-gray-600 mr-3"}`}>
-                    {message.isUser ? <User className="h-4 w-4 text-white" /> : <Bot className="h-4 w-4 text-white" />}
+              <div key={message.id} className={`flex ${message.role === 'user' ? "justify-end" : "justify-start"}`}>
+                <div className={`flex max-w-[80%] ${message.role === 'user' ? "flex-row-reverse" : "flex-row"} items-start space-x-3`}>
+                  <div className={`p-2 rounded-full ${message.role === 'user' ? "bg-blue-600 ml-3" : "bg-gray-600 mr-3"}`}>
+                    {message.role === 'user' ? <User className="h-4 w-4 text-white" /> : <Bot className="h-4 w-4 text-white" />}
                   </div>
                   <div className={`p-4 rounded-2xl ${
-                    message.isUser 
+                    message.role === 'user'
                       ? "bg-blue-600 text-white rounded-br-md" 
                       : "bg-gray-100 text-gray-800 rounded-bl-md"
                   }`}>
                     <p className="whitespace-pre-wrap">{message.content}</p>
-                    <p className={`text-xs mt-2 ${message.isUser ? "text-blue-100" : "text-gray-500"}`}>
-                      {message.timestamp.toLocaleTimeString()}
+                    <p className={`text-xs mt-2 ${message.role === 'user' ? "text-blue-100" : "text-gray-500"}`}>
+                      {new Date(message.created_at).toLocaleTimeString()}
                     </p>
                   </div>
                 </div>
@@ -179,11 +226,11 @@ const Chat = () => {
                 onKeyPress={handleKeyPress}
                 placeholder="Ask me anything about your documents..."
                 className="flex-1 text-base py-3"
-                disabled={isLoading}
+                disabled={isLoading || !threadId}
               />
               <Button 
                 onClick={sendMessage} 
-                disabled={!inputValue.trim() || isLoading}
+                disabled={!inputValue.trim() || isLoading || !threadId}
                 className="bg-blue-600 hover:bg-blue-700 px-6"
               >
                 {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
