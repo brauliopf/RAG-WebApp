@@ -155,6 +155,7 @@ const Chat = () => {
         body: JSON.stringify({
           question: userInput,
           thread_id: threadId,
+          use_agentic: true,
         }),
       });
 

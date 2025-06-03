@@ -1,23 +1,32 @@
+import { useState, useEffect } from 'react';
+import {
+  Upload,
+  FileText,
+  Trash2,
+  CheckCircle,
+  Clock,
+  AlertCircle,
+  Bot,
+} from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { toast } from '@/hooks/use-toast';
+import { Link } from 'react-router-dom';
+import { supabase } from '@/integrations/supabase/client';
+import { Tables } from '@/integrations/supabase/types';
 
-import { useState, useEffect } from "react";
-import { Upload, FileText, Trash2, CheckCircle, Clock, AlertCircle, Bot } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { toast } from "@/hooks/use-toast";
-import { Link } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
-
-interface Document {
-  id: string;
-  title: string;
-  file_type: string;
-  file_size: number;
-  status: "processing" | "completed" | "error";
-  created_at: string;
-  pinecone_id?: string;
-}
+// Use the proper Supabase Document type
+type Document = Tables<'documents'> & {
+  status: 'processing' | 'completed' | 'error';
+};
 
 const Admin = () => {
   const [documents, setDocuments] = useState<Document[]>([]);
@@ -37,32 +46,46 @@ const Admin = () => {
 
       if (error) throw error;
 
-      const documentsWithStatus = data.map(doc => ({
+      const documentsWithStatus = data.map((doc) => ({
         ...doc,
-        status: doc.pinecone_id ? 'completed' as const : 'processing' as const
+        status: doc.pinecone_id
+          ? ('completed' as const)
+          : ('processing' as const),
       }));
 
       setDocuments(documentsWithStatus);
     } catch (error) {
       console.error('Error loading documents:', error);
       toast({
-        title: "Error",
-        description: "Failed to load documents.",
-        variant: "destructive",
+        title: 'Error',
+        description: 'Failed to load documents.',
+        variant: 'destructive',
       });
     }
   };
 
-  const saveDocumentToSupabase = async (file: File, status: Document['status'] = 'processing') => {
+  const saveDocumentToSupabase = async (
+    file: File,
+    status: Document['status'] = 'processing'
+  ) => {
     try {
+      // Map MIME types to database-compatible file types
+      const getFileType = (file: File): string => {
+        if (file.type === 'application/pdf') return 'pdf';
+        if (file.type === 'text/markdown' || file.name.endsWith('.md'))
+          return 'md';
+        if (file.type === 'text/plain') return 'md'; // Treat plain text as markdown
+        // Default fallback
+        return 'md';
+      };
+
       const { data, error } = await supabase
         .from('documents')
         .insert({
           title: file.name,
-          file_type: file.type || 'text/markdown',
+          file_type: getFileType(file),
           file_size: file.size,
-          content: '', // Will be filled by the API
-          pinecone_id: status === 'completed' ? `pinecone_${Date.now()}` : null
+          pinecone_id: null,
         })
         .select()
         .single();
@@ -75,7 +98,11 @@ const Admin = () => {
     }
   };
 
-  const updateDocumentStatus = async (id: string, status: Document['status'], pinecone_id?: string) => {
+  const updateDocumentStatus = async (
+    id: string,
+    status: Document['status'],
+    pinecone_id?: string
+  ) => {
     try {
       const updateData: any = {};
       if (pinecone_id) {
@@ -89,9 +116,11 @@ const Admin = () => {
 
       if (error) throw error;
 
-      setDocuments(prev => prev.map(doc => 
-        doc.id === id ? { ...doc, status, pinecone_id } : doc
-      ));
+      setDocuments((prev) =>
+        prev.map((doc) =>
+          doc.id === id ? { ...doc, status, pinecone_id } : doc
+        )
+      );
     } catch (error) {
       console.error('Error updating document:', error);
     }
@@ -103,12 +132,12 @@ const Admin = () => {
     // Validate file type
     const allowedTypes = ['application/pdf', 'text/markdown', 'text/plain'];
     const isMarkdown = file.name.endsWith('.md');
-    
+
     if (!allowedTypes.includes(file.type) && !isMarkdown) {
       toast({
-        title: "Invalid file type",
-        description: "Please upload only PDF or Markdown files.",
-        variant: "destructive",
+        title: 'Invalid file type',
+        description: 'Please upload only PDF or Markdown files.',
+        variant: 'destructive',
       });
       return;
     }
@@ -123,38 +152,47 @@ const Admin = () => {
     }
 
     // Update local state
-    setDocuments(prev => [newDoc, ...prev]);
+    setDocuments((prev) => [newDoc, ...prev]);
 
     try {
       const formData = new FormData();
-      formData.append('file', file);
+      formData.append('file_content', file);
 
-      const response = await fetch("https://agentic-rag-api.onrender.com/api/v1/documents/ingest_file", {
-        method: "POST",
-        body: formData,
-      });
+      const response = await fetch(
+        'http://0.0.0.0:8000/api/v1/documents/ingest_file',
+        // 'https://agentic-rag-api.onrender.com/api/v1/documents/ingest_file',
+        {
+          method: 'POST',
+          body: formData,
+        }
+      );
 
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
       // Update document status to completed
-      await updateDocumentStatus(newDoc.id, 'completed', `pinecone_${Date.now()}`);
+      await updateDocumentStatus(
+        newDoc.id,
+        'completed',
+        `pinecone_${Date.now()}`
+      );
 
       toast({
-        title: "Document uploaded successfully",
+        title: 'Document uploaded successfully',
         description: `${file.name} has been processed and added to your knowledge base.`,
       });
     } catch (error) {
-      console.error("Error uploading file:", error);
-      
+      console.error('Error uploading file:', error);
+
       // Update document status to error
       await updateDocumentStatus(newDoc.id, 'error');
 
       toast({
-        title: "Upload failed",
-        description: "There was an error processing your document. Please try again.",
-        variant: "destructive",
+        title: 'Upload failed',
+        description:
+          'There was an error processing your document. Please try again.',
+        variant: 'destructive',
       });
     } finally {
       setIsUploading(false);
@@ -175,24 +213,21 @@ const Admin = () => {
 
   const deleteDocument = async (id: string, title: string) => {
     try {
-      const { error } = await supabase
-        .from('documents')
-        .delete()
-        .eq('id', id);
+      const { error } = await supabase.from('documents').delete().eq('id', id);
 
       if (error) throw error;
 
-      setDocuments(prev => prev.filter(doc => doc.id !== id));
+      setDocuments((prev) => prev.filter((doc) => doc.id !== id));
       toast({
-        title: "Document deleted",
-        description: "The document has been removed from your knowledge base.",
+        title: 'Document deleted',
+        description: 'The document has been removed from your knowledge base.',
       });
     } catch (error) {
       console.error('Error deleting document:', error);
       toast({
-        title: "Error",
-        description: "Failed to delete document.",
-        variant: "destructive",
+        title: 'Error',
+        description: 'Failed to delete document.',
+        variant: 'destructive',
       });
     }
   };
@@ -245,15 +280,16 @@ const Admin = () => {
           <CardHeader>
             <CardTitle className="text-2xl">Upload Documents</CardTitle>
             <CardDescription>
-              Add PDF or Markdown files to your knowledge base. Files will be processed and made available for chat queries.
+              Add PDF or Markdown files to your knowledge base. Files will be
+              processed and made available for chat queries.
             </CardDescription>
           </CardHeader>
           <CardContent>
             <div
               className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
                 dragActive
-                  ? "border-blue-500 bg-blue-50"
-                  : "border-gray-300 hover:border-blue-400 hover:bg-gray-50"
+                  ? 'border-blue-500 bg-blue-50'
+                  : 'border-gray-300 hover:border-blue-400 hover:bg-gray-50'
               }`}
               onDrop={handleDrop}
               onDragOver={(e) => e.preventDefault()}
@@ -261,12 +297,13 @@ const Admin = () => {
               onDragLeave={() => setDragActive(false)}
             >
               <Upload className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-semibold mb-2">Drop files here or click to upload</h3>
-              <p className="text-gray-600 mb-4">Supports PDF and Markdown files</p>
-              <Label htmlFor="file-upload">
-                <Button variant="outline" disabled={isUploading} className="cursor-pointer">
-                  {isUploading ? "Uploading..." : "Choose Files"}
-                </Button>
+              <h3 className="text-lg font-semibold mb-2">
+                Drop files here or click to upload
+              </h3>
+              <p className="text-gray-600 mb-4">
+                Supports PDF and Markdown files
+              </p>
+              <div>
                 <Input
                   id="file-upload"
                   type="file"
@@ -275,7 +312,12 @@ const Admin = () => {
                   className="hidden"
                   disabled={isUploading}
                 />
-              </Label>
+                <Label htmlFor="file-upload" className="cursor-pointer">
+                  <Button variant="outline" disabled={isUploading} asChild>
+                    <span>{isUploading ? 'Uploading...' : 'Choose Files'}</span>
+                  </Button>
+                </Label>
+              </div>
             </div>
           </CardContent>
         </Card>
@@ -292,8 +334,12 @@ const Admin = () => {
             {documents.length === 0 ? (
               <div className="text-center py-12">
                 <FileText className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-                <h3 className="text-xl font-semibold text-gray-600 mb-2">No documents uploaded</h3>
-                <p className="text-gray-500">Upload your first document to get started.</p>
+                <h3 className="text-xl font-semibold text-gray-600 mb-2">
+                  No documents uploaded
+                </h3>
+                <p className="text-gray-500">
+                  Upload your first document to get started.
+                </p>
               </div>
             ) : (
               <div className="space-y-4">
@@ -307,7 +353,10 @@ const Admin = () => {
                       <div>
                         <h4 className="font-semibold">{doc.title}</h4>
                         <p className="text-sm text-gray-600">
-                          {formatFileSize(doc.file_size)} • Uploaded {new Date(doc.created_at).toLocaleDateString()}
+                          {formatFileSize(doc.file_size)} • Uploaded{' '}
+                          {doc.created_at
+                            ? new Date(doc.created_at).toLocaleDateString()
+                            : 'Unknown date'}
                         </p>
                       </div>
                     </div>
