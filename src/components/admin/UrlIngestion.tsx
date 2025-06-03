@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link as LinkIcon, Clock, Plus, X } from 'lucide-react';
+import { LinkIcon, Plus, Clock, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -13,6 +13,7 @@ import { Label } from '@/components/ui/label';
 import { toast } from '@/hooks/use-toast';
 import { UrlIngestionProps } from './types';
 import { saveUrlToSupabase, updateDocumentStatus } from './documentService';
+import { apiEndpoints } from '@/lib/config';
 
 export const UrlIngestion = ({ onDocumentAdded }: UrlIngestionProps) => {
   const [urlInput, setUrlInput] = useState('');
@@ -91,23 +92,20 @@ export const UrlIngestion = ({ onDocumentAdded }: UrlIngestionProps) => {
     onDocumentAdded(newDoc);
 
     try {
-      const response = await fetch(
-        'http://0.0.0.0:8000/api/v1/documents/ingest_url',
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify([
-            {
-              url: urlInput.trim(),
-              metadata: {
-                classes: finalTags.join(','),
-              },
+      const response = await fetch(apiEndpoints.documents.ingestUrl(), {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify([
+          {
+            url: urlInput.trim(),
+            metadata: {
+              classes: finalTags.join(','),
             },
-          ]),
-        }
-      );
+          },
+        ]),
+      });
 
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);

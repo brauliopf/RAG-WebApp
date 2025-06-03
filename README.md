@@ -4,6 +4,62 @@
 
 **URL**: https://lovable.dev/projects/0998c2f4-3721-4f4b-aa37-cb2f3e49f708
 
+## Configuration
+
+This project uses environment variables for configuration. All API URLs are centralized in `src/lib/config.ts` for easy management.
+
+### Development Setup
+
+1. Create a `.env.local` file in the root directory:
+
+```bash
+# Development Configuration
+VITE_API_BASE_URL=http://0.0.0.0:8000
+```
+
+2. For production, update the `VITE_API_BASE_URL` to your production API URL:
+
+```bash
+# Production Configuration
+VITE_API_BASE_URL=https://your-production-api.com
+```
+
+### Available Environment Variables
+
+- `VITE_API_BASE_URL`: The base URL for your API server
+  - **Development**: `http://0.0.0.0:8000`
+  - **Production**: `https://your-production-api.com`
+
+### API Endpoints
+
+The following endpoints are automatically configured based on your `VITE_API_BASE_URL`:
+
+- **Chat**: `${VITE_API_BASE_URL}/api/v1/query`
+- **Document Upload**: `${VITE_API_BASE_URL}/api/v1/documents/ingest_file`
+- **URL Ingestion**: `${VITE_API_BASE_URL}/api/v1/documents/ingest_url`
+- **Document Deletion**: `${VITE_API_BASE_URL}/api/v1/documents/delete`
+
+### Usage in Code
+
+Import and use the centralized configuration:
+
+```typescript
+import { apiEndpoints } from '@/lib/config';
+
+// Example: Making a chat query
+const response = await fetch(apiEndpoints.chat.query(), {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ question: 'Hello' }),
+});
+
+// Example: Uploading a document
+const response = await fetch(apiEndpoints.documents.ingestFile(), {
+  method: 'POST',
+  body: formData,
+});
+```
+
 ## How can I edit this code?
 
 There are several ways of editing your application.

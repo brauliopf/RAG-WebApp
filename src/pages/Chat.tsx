@@ -6,6 +6,7 @@ import { Card } from '@/components/ui/card';
 import { toast } from '@/hooks/use-toast';
 import { Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
+import { apiEndpoints } from '@/lib/config';
 
 interface Message {
   id: string;
@@ -135,7 +136,7 @@ const Chat = () => {
   };
 
   const sendMessage = async () => {
-    if (!inputValue.trim() || isLoading || !threadId) return;
+    if (!inputValue.trim() || !threadId) return;
 
     const userMessage = await saveMessage(inputValue, 'user');
     if (userMessage) {
@@ -147,7 +148,7 @@ const Chat = () => {
     setIsLoading(true);
 
     try {
-      const response = await fetch('http://0.0.0.0:8000/api/v1/query', {
+      const response = await fetch(apiEndpoints.chat.query(), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

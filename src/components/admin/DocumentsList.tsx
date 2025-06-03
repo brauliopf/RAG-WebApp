@@ -26,6 +26,7 @@ import { toast } from '@/hooks/use-toast';
 import { DocumentsListProps, Document } from './types';
 import { formatFileSize } from './utils';
 import { deleteDocumentFromSupabase } from './documentService';
+import { apiEndpoints } from '@/lib/config';
 
 export const DocumentsList = ({
   documents,
@@ -53,7 +54,7 @@ export const DocumentsList = ({
       // First, try to delete from the backend API
       try {
         const response = await fetch(
-          `http://0.0.0.0:8000/api/v1/documents/delete`,
+          apiEndpoints.documents.delete(),
           // `https://agentic-rag-api.onrender.com/api/v1/documents/${id}`,
           {
             method: 'POST',

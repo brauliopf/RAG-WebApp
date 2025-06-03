@@ -17,6 +17,7 @@ import {
   saveDocumentToSupabase,
   updateDocumentStatus,
 } from './documentService';
+import { apiEndpoints } from '@/lib/config';
 
 export const DocumentUpload = ({ onDocumentAdded }: DocumentUploadProps) => {
   const [isUploading, setIsUploading] = useState(false);
@@ -52,7 +53,7 @@ export const DocumentUpload = ({ onDocumentAdded }: DocumentUploadProps) => {
       formData.append('file_content', file);
 
       const response = await fetch(
-        'http://0.0.0.0:8000/api/v1/documents/ingest_file',
+        apiEndpoints.documents.ingestFile(),
         // 'https://agentic-rag-api.onrender.com/api/v1/documents/ingest_file',
         {
           method: 'POST',
