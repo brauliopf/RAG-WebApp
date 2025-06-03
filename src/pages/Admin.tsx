@@ -16,6 +16,14 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { toast } from '@/hooks/use-toast';
@@ -32,6 +40,11 @@ const Admin = () => {
   const [documents, setDocuments] = useState<Document[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const [dragActive, setDragActive] = useState(false);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [documentToDelete, setDocumentToDelete] = useState<Document | null>(
+    null
+  );
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     loadDocuments();
@@ -42,6 +55,7 @@ const Admin = () => {
       const { data, error } = await supabase
         .from('documents')
         .select('*')
+        .is('deleted_at', null) // Only load non-deleted documents
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -213,10 +227,43 @@ const Admin = () => {
 
   const deleteDocument = async (id: string, title: string) => {
     try {
-      const { error } = await supabase.from('documents').delete().eq('id', id);
+      // First, try to delete from the backend API
+      try {
+        const response = await fetch(
+          `http://0.0.0.0:8000/api/v1/documents/${title}`,
+          // `https://agentic-rag-api.onrender.com/api/v1/documents/${id}`,
+          {
+            method: 'DELETE',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              filename: title,
+            }),
+          }
+        );
+
+        if (!response.ok) {
+          console.warn(
+            `Backend deletion failed with status: ${response.status}`
+          );
+          // Continue with Supabase deletion even if backend fails
+        }
+      } catch (apiError) {
+        console.warn('Backend API deletion failed:', apiError);
+        // Continue with Supabase deletion even if backend fails
+      }
+
+      // Soft delete in Supabase database by setting deleted_at timestamp
+      // This preserves the record for potential recovery while hiding it from normal queries
+      const { error } = await supabase
+        .from('documents')
+        .update({ deleted_at: new Date().toISOString() })
+        .eq('id', id);
 
       if (error) throw error;
 
+      // Remove from local state
       setDocuments((prev) => prev.filter((doc) => doc.id !== id));
       toast({
         title: 'Document deleted',
@@ -249,6 +296,26 @@ const Admin = () => {
     const sizes = ['Bytes', 'KB', 'MB', 'GB'];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  };
+
+  const handleDeleteClick = (document: Document) => {
+    setDocumentToDelete(document);
+    setDeleteModalOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!documentToDelete) return;
+
+    setIsDeleting(true);
+    await deleteDocument(documentToDelete.id, documentToDelete.title);
+    setIsDeleting(false);
+    setDeleteModalOpen(false);
+    setDocumentToDelete(null);
+  };
+
+  const cancelDelete = () => {
+    setDeleteModalOpen(false);
+    setDocumentToDelete(null);
   };
 
   return (
@@ -368,7 +435,7 @@ const Admin = () => {
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => deleteDocument(doc.id, doc.title)}
+                        onClick={() => handleDeleteClick(doc)}
                         className="text-red-600 hover:text-red-700 hover:bg-red-50"
                       >
                         <Trash2 className="h-4 w-4" />
@@ -381,6 +448,36 @@ const Admin = () => {
           </CardContent>
         </Card>
       </div>
+
+      {/* Delete Confirmation Modal */}
+      <Dialog open={deleteModalOpen} onOpenChange={setDeleteModalOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Confirm Delete</DialogTitle>
+            <DialogDescription>
+              Do you want to proceed with removing{' '}
+              <span className="font-semibold">{documentToDelete?.title}</span>{' '}
+              from your knowledge base?
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={cancelDelete}
+              disabled={isDeleting}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={confirmDelete}
+              disabled={isDeleting}
+            >
+              {isDeleting ? 'Deleting...' : 'Delete'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
