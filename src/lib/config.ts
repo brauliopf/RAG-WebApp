@@ -3,8 +3,8 @@ const config = {
   // API Configuration
   api: {
     baseUrl:
-      // import.meta.env.VITE_API_BASE_URL || 'https://tako-rag.onrender.com',
-      'http://0.0.0.0:8000',
+      import.meta.env.VITE_API_BASE_URL || 'https://tako-rag.onrender.com',
+    // 'http://0.0.0.0:8000',
     endpoints: {
       documents: {
         delete: '/api/v1/documents/delete',
