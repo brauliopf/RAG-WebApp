@@ -27,6 +27,7 @@ import { DocumentsListProps, Document } from './types';
 import { formatFileSize } from './utils';
 import { deleteDocumentFromSupabase } from './documentService';
 import { apiEndpoints } from '@/lib/config';
+import { makeAuthenticatedRequest } from '@/lib/auth';
 
 export const DocumentsList = ({
   documents,
@@ -53,14 +54,10 @@ export const DocumentsList = ({
     try {
       // First, try to delete from the backend API
       try {
-        const response = await fetch(
+        const response = await makeAuthenticatedRequest(
           apiEndpoints.documents.delete(),
-          // `https://agentic-rag-api.onrender.com/api/v1/documents/${id}`,
           {
             method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
             body: JSON.stringify({
               doc_id: title,
             }),
