@@ -1,8 +1,6 @@
 import { useState, useEffect } from 'react';
-import { Bot } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 import { toast } from '@/hooks/use-toast';
-import { Link } from 'react-router-dom';
+import { Header } from '@/components/layout';
 import {
   DocumentUpload,
   UrlIngestion,
@@ -58,28 +56,21 @@ const Admin = () => {
     );
   };
 
+  const headerActions = [
+    {
+      label: 'Back to Chat',
+      to: '/rag',
+      variant: 'outline' as const,
+    },
+  ];
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
-      {/* Header */}
-      <div className="border-b bg-white/80 backdrop-blur-sm sticky top-0 z-50">
-        <div className="container mx-auto px-6 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3">
-              <Link to="/" className="flex items-center space-x-3">
-                <div className="p-2 bg-blue-600 rounded-lg">
-                  <Bot className="h-6 w-6 text-white" />
-                </div>
-                <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-                  Document Manager
-                </h1>
-              </Link>
-            </div>
-            <Link to="/rag">
-              <Button variant="outline">Back to Chat</Button>
-            </Link>
-          </div>
-        </div>
-      </div>
+      <Header
+        subtitle="Knowledge Base Manager"
+        actions={headerActions}
+        logoTo="/"
+      />
 
       <div className="container mx-auto px-6 py-8 max-w-6xl">
         {/* Document Upload Section */}

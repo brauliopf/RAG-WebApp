@@ -1,11 +1,9 @@
 import { useState, useEffect } from 'react';
-import { Bot } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { toast } from '@/hooks/use-toast';
-import { Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { apiEndpoints } from '@/lib/config';
+import { Header } from '@/components/layout';
 import { Conversation, MessageInput } from '@/components/chat';
 
 interface Message {
@@ -219,41 +217,22 @@ const Chat = () => {
     }
   };
 
+  const headerActions = [
+    {
+      label: 'New Chat',
+      onClick: startNewChat,
+      variant: 'outline' as const,
+    },
+    {
+      label: 'Manage Documents',
+      to: '/rag/admin',
+      variant: 'outline' as const,
+    },
+  ];
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
-      {/* Header */}
-      <div className="border-b bg-white/80 backdrop-blur-sm sticky top-0 z-50">
-        <div className="container mx-auto px-6 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3">
-              <Link to="/" className="flex items-center space-x-3">
-                <div className="p-2 bg-blue-600 rounded-lg">
-                  <Bot className="h-6 w-6 text-white" />
-                </div>
-                <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-                  RAG Assistant
-                </h1>
-              </Link>
-              {threadTitle && (
-                <div className="hidden md:block">
-                  <span className="text-sm text-gray-500">•</span>
-                  <span className="text-sm text-gray-600 ml-2">
-                    {threadTitle}
-                  </span>
-                </div>
-              )}
-            </div>
-            <div className="flex items-center space-x-3">
-              <Button variant="outline" onClick={startNewChat}>
-                New Chat
-              </Button>
-              <Link to="/rag/admin">
-                <Button variant="outline">Manage Documents</Button>
-              </Link>
-            </div>
-          </div>
-        </div>
-      </div>
+      <Header subtitle={threadTitle} actions={headerActions} logoTo="/" />
 
       {/* Chat Container */}
       <div className="container mx-auto px-6 py-8 max-w-4xl">
