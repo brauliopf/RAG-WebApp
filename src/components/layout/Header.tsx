@@ -1,6 +1,8 @@
+
 import { Bot } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
+import AuthButton from './AuthButton';
 
 interface HeaderAction {
   label: string;
@@ -53,33 +55,36 @@ const Header = ({
             )}
           </div>
 
-          {actions.length > 0 && (
-            <div className="flex items-center space-x-3">
-              {actions.map((action, index) =>
-                action.to ? (
-                  <Link key={index} to={action.to}>
+          <div className="flex items-center space-x-3">
+            {actions.length > 0 && (
+              <>
+                {actions.map((action, index) =>
+                  action.to ? (
+                    <Link key={index} to={action.to}>
+                      <Button
+                        variant={action.variant || 'outline'}
+                        className="flex items-center space-x-2"
+                      >
+                        {action.icon}
+                        <span>{action.label}</span>
+                      </Button>
+                    </Link>
+                  ) : (
                     <Button
+                      key={index}
                       variant={action.variant || 'outline'}
+                      onClick={action.onClick}
                       className="flex items-center space-x-2"
                     >
                       {action.icon}
                       <span>{action.label}</span>
                     </Button>
-                  </Link>
-                ) : (
-                  <Button
-                    key={index}
-                    variant={action.variant || 'outline'}
-                    onClick={action.onClick}
-                    className="flex items-center space-x-2"
-                  >
-                    {action.icon}
-                    <span>{action.label}</span>
-                  </Button>
-                )
-              )}
-            </div>
-          )}
+                  )
+                )}
+              </>
+            )}
+            <AuthButton />
+          </div>
         </div>
       </div>
     </div>

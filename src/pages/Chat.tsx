@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { toast } from '@/hooks/use-toast';
@@ -5,6 +6,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { apiEndpoints } from '@/lib/config';
 import { Header } from '@/components/layout';
 import { Conversation, MessageInput } from '@/components/chat';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface Message {
   id: string;
@@ -15,21 +17,25 @@ interface Message {
 }
 
 const Chat = () => {
+  const { user } = useAuth();
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [threadId, setThreadId] = useState<string | null>(null);
   const [threadTitle, setThreadTitle] = useState<string>('');
 
   useEffect(() => {
-    initializeChat();
-  }, []);
+    if (user) {
+      initializeChat();
+    }
+  }, [user]);
 
   const initializeChat = async () => {
     try {
-      // First, try to get the most recent thread
+      // First, try to get the most recent thread for the user
       const { data: existingThreads, error: threadsError } = await supabase
         .from('chat_threads')
         .select('*')
+        .eq('user_id', user?.id)
         .order('created_at', { ascending: false })
         .limit(1);
 
@@ -39,7 +45,7 @@ const Chat = () => {
         // Load the most recent thread and its messages
         const recentThread = existingThreads[0];
         setThreadId(recentThread.id);
-        setThreadTitle(recentThread.title);
+        setThreadTitle(recentThread.title || 'New Chat');
         await loadMessages(recentThread.id);
       } else {
         // No existing threads, create a new one
@@ -56,12 +62,15 @@ const Chat = () => {
   };
 
   const createNewThread = async () => {
+    if (!user) return;
+    
     try {
       const newTitle = `Chat ${new Date().toLocaleString()}`;
       const { data, error } = await supabase
         .from('chat_threads')
         .insert({
           title: newTitle,
+          user_id: user.id,
         })
         .select()
         .single();
@@ -124,7 +133,7 @@ const Chat = () => {
   };
 
   const handleSendMessage = async (userInput: string) => {
-    if (!threadId) return;
+    if (!threadId || !user) return;
 
     const userMessage = await saveMessage(userInput, 'user');
     if (userMessage) {
@@ -187,20 +196,7 @@ const Chat = () => {
 
   const handleReportMessage = async (messageId: string, reason?: string) => {
     try {
-      // Here you would typically send the report to your backend
-      // For now, we'll just log it and show a success message
       console.log('Message reported:', { messageId, reason, threadId });
-
-      // You could add an API call here to save the report to your database
-      // Example:
-      // await supabase
-      //   .from('message_reports')
-      //   .insert({
-      //     message_id: messageId,
-      //     thread_id: threadId,
-      //     reason: reason,
-      //     reported_at: new Date().toISOString(),
-      //   });
 
       toast({
         title: 'Report submitted',

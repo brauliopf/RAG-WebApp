@@ -7,6 +7,9 @@ export const saveDocumentToSupabase = async (
   status: Document['status'] = 'processing'
 ): Promise<Document | null> => {
   try {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error('User not authenticated');
+
     const { data, error } = await supabase
       .from('documents')
       .insert({
@@ -14,6 +17,7 @@ export const saveDocumentToSupabase = async (
         file_type: getFileType(file),
         file_size: file.size,
         pinecone_id: null,
+        user_id: user.id,
       })
       .select()
       .single();
@@ -31,6 +35,9 @@ export const saveUrlToSupabase = async (
   tags: string[]
 ): Promise<Document | null> => {
   try {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error('User not authenticated');
+
     const { data, error } = await supabase
       .from('documents')
       .insert({
@@ -39,6 +46,7 @@ export const saveUrlToSupabase = async (
         file_size: 0, // Empty size for URLs
         metadata: tags.length > 0 ? tags.join(',') : null,
         pinecone_id: null,
+        user_id: user.id,
       })
       .select()
       .single();

@@ -1,6 +1,8 @@
+
 import { useState, useEffect } from 'react';
 import { toast } from '@/hooks/use-toast';
 import { Header } from '@/components/layout';
+import { useAuth } from '@/contexts/AuthContext';
 import {
   DocumentUpload,
   UrlIngestion,
@@ -10,11 +12,14 @@ import {
 } from '@/components/admin';
 
 const Admin = () => {
+  const { user } = useAuth();
   const [documents, setDocuments] = useState<Document[]>([]);
 
   useEffect(() => {
-    loadDocumentsData();
-  }, []);
+    if (user) {
+      loadDocumentsData();
+    }
+  }, [user]);
 
   const loadDocumentsData = async () => {
     try {
