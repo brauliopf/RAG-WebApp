@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { toast } from '@/hooks/use-toast';
@@ -7,6 +6,7 @@ import { apiEndpoints } from '@/lib/config';
 import { Header } from '@/components/layout';
 import { Conversation, MessageInput } from '@/components/chat';
 import { useAuth } from '@/contexts/AuthContext';
+import { makeAuthenticatedRequest } from '@/lib/auth';
 
 interface Message {
   id: string;
@@ -63,7 +63,7 @@ const Chat = () => {
 
   const createNewThread = async () => {
     if (!user) return;
-    
+
     try {
       const newTitle = `Chat ${new Date().toLocaleString()}`;
       const { data, error } = await supabase
@@ -143,17 +143,18 @@ const Chat = () => {
     setIsLoading(true);
 
     try {
-      const response = await fetch(apiEndpoints.chat.query(), {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          question: userInput,
-          thread_id: threadId,
-          use_agentic: true,
-        }),
-      });
+      // Use authenticated request with JWT token
+      const response = await makeAuthenticatedRequest(
+        apiEndpoints.chat.query(),
+        {
+          method: 'POST',
+          body: JSON.stringify({
+            question: userInput,
+            thread_id: threadId,
+            use_agentic: true,
+          }),
+        }
+      );
 
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -217,11 +218,6 @@ const Chat = () => {
     {
       label: 'New Chat',
       onClick: startNewChat,
-      variant: 'outline' as const,
-    },
-    {
-      label: 'Manage Documents',
-      to: '/rag/admin',
       variant: 'outline' as const,
     },
   ];

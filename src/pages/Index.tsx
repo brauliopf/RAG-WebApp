@@ -18,12 +18,6 @@ const Index = () => {
       variant: 'ghost' as const,
       icon: <MessageSquare className="h-4 w-4" />,
     },
-    {
-      label: 'Manage Documents',
-      to: '/rag/admin',
-      variant: 'ghost' as const,
-      icon: <FileText className="h-4 w-4" />,
-    },
   ];
 
   return (

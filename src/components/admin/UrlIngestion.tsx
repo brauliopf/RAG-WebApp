@@ -14,6 +14,7 @@ import { toast } from '@/hooks/use-toast';
 import { UrlIngestionProps } from './types';
 import { saveUrlToSupabase, updateDocumentStatus } from './documentService';
 import { apiEndpoints } from '@/lib/config';
+import { makeAuthenticatedRequest } from '@/lib/auth';
 
 export const UrlIngestion = ({ onDocumentAdded }: UrlIngestionProps) => {
   const [urlInput, setUrlInput] = useState('');
@@ -92,20 +93,21 @@ export const UrlIngestion = ({ onDocumentAdded }: UrlIngestionProps) => {
     onDocumentAdded(newDoc);
 
     try {
-      const response = await fetch(apiEndpoints.documents.ingestUrl(), {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify([
-          {
-            url: urlInput.trim(),
-            metadata: {
-              classes: finalTags.join(','),
+      // Use authenticated request with JWT token
+      const response = await makeAuthenticatedRequest(
+        apiEndpoints.documents.ingestUrl(),
+        {
+          method: 'POST',
+          body: JSON.stringify([
+            {
+              url: urlInput.trim(),
+              metadata: {
+                classes: finalTags.join(','),
+              },
             },
-          },
-        ]),
-      });
+          ]),
+        }
+      );
 
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);

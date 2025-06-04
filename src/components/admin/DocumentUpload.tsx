@@ -18,6 +18,7 @@ import {
   updateDocumentStatus,
 } from './documentService';
 import { apiEndpoints } from '@/lib/config';
+import { makeAuthenticatedFormRequest } from '@/lib/auth';
 
 export const DocumentUpload = ({ onDocumentAdded }: DocumentUploadProps) => {
   const [isUploading, setIsUploading] = useState(false);
@@ -52,13 +53,10 @@ export const DocumentUpload = ({ onDocumentAdded }: DocumentUploadProps) => {
       const formData = new FormData();
       formData.append('file_content', file);
 
-      const response = await fetch(
+      // Use authenticated request with JWT token
+      const response = await makeAuthenticatedFormRequest(
         apiEndpoints.documents.ingestFile(),
-        // 'https://agentic-rag-api.onrender.com/api/v1/documents/ingest_file',
-        {
-          method: 'POST',
-          body: formData,
-        }
+        formData
       );
 
       if (!response.ok) {
