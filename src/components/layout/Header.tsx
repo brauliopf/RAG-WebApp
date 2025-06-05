@@ -11,6 +11,7 @@ interface HeaderAction {
   variant?: 'default' | 'outline' | 'ghost';
   icon?: React.ReactNode;
   hideOnMobile?: boolean;
+  mobileIcon?: React.ReactNode;
 }
 
 interface HeaderProps {
@@ -68,8 +69,19 @@ const Header = ({
                           action.hideOnMobile ? 'hidden sm:flex' : ''
                         }`}
                       >
-                        {action.icon}
-                        <span>{action.label}</span>
+                        {action.mobileIcon && (
+                          <span className="sm:hidden">{action.mobileIcon}</span>
+                        )}
+                        <span className="hidden sm:flex items-center space-x-2">
+                          {action.icon}
+                          <span>{action.label}</span>
+                        </span>
+                        {!action.mobileIcon && (
+                          <>
+                            {action.icon}
+                            <span className="hidden sm:inline">{action.label}</span>
+                          </>
+                        )}
                       </Button>
                     </Link>
                   ) : (
@@ -81,8 +93,19 @@ const Header = ({
                         action.hideOnMobile ? 'hidden sm:flex' : ''
                       }`}
                     >
-                      {action.icon}
-                      <span>{action.label}</span>
+                      {action.mobileIcon && (
+                        <span className="sm:hidden">{action.mobileIcon}</span>
+                      )}
+                      <span className="hidden sm:flex items-center space-x-2">
+                        {action.icon}
+                        <span>{action.label}</span>
+                      </span>
+                      {!action.mobileIcon && (
+                        <>
+                          {action.icon}
+                          <span className="hidden sm:inline">{action.label}</span>
+                        </>
+                      )}
                     </Button>
                   )
                 )}

@@ -1,5 +1,6 @@
 
 import { useState, useEffect } from 'react';
+import { MessageSquare } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { Header } from '@/components/layout';
 import { useAuth } from '@/contexts/AuthContext';
@@ -66,6 +67,7 @@ const Admin = () => {
       label: 'Back to Chat',
       to: '/rag',
       variant: 'outline' as const,
+      icon: <MessageSquare className="h-4 w-4" />,
     },
   ];
 
