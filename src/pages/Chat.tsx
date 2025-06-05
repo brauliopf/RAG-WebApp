@@ -149,7 +149,7 @@ const Chat = () => {
         {
           method: 'POST',
           body: JSON.stringify({
-            question: userInput,
+            query: userInput,
             thread_id: threadId,
             use_agentic: true,
           }),
