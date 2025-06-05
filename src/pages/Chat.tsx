@@ -1,245 +1,107 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
+import { Menu, X } from 'lucide-react';
 import { Card } from '@/components/ui/card';
-import { toast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
-import { apiEndpoints } from '@/lib/config';
+import { Button } from '@/components/ui/button';
 import { Header } from '@/components/layout';
-import { Conversation, MessageInput } from '@/components/chat';
-import { useAuth } from '@/contexts/AuthContext';
-import { makeAuthenticatedRequest } from '@/lib/auth';
-
-interface Message {
-  id: string;
-  content: string;
-  role: string;
-  thread_id: string;
-  created_at: string;
-}
+import { Conversation, MessageInput, ThreadList } from '@/components/chat';
+import { useChat } from '@/hooks/useChat';
 
 const Chat = () => {
-  const { user } = useAuth();
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [threadId, setThreadId] = useState<string | null>(null);
-  const [threadTitle, setThreadTitle] = useState<string>('');
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const {
+    messages,
+    threads,
+    activeThreadId,
+    activeThread,
+    isLoading,
+    isLoadingThreads,
+    createNewThread,
+    switchToThread,
+    sendMessage,
+    deleteThread,
+    renameThread,
+    reportMessage,
+  } = useChat();
 
-  useEffect(() => {
-    if (user) {
-      initializeChat();
-    }
-  }, [user]);
-
-  const initializeChat = async () => {
-    try {
-      // First, try to get the most recent thread for the user
-      const { data: existingThreads, error: threadsError } = await supabase
-        .from('chat_threads')
-        .select('*')
-        .eq('user_id', user?.id)
-        .order('created_at', { ascending: false })
-        .limit(1);
-
-      if (threadsError) throw threadsError;
-
-      if (existingThreads && existingThreads.length > 0) {
-        // Load the most recent thread and its messages
-        const recentThread = existingThreads[0];
-        setThreadId(recentThread.id);
-        setThreadTitle(recentThread.title || 'New Chat');
-        await loadMessages(recentThread.id);
-      } else {
-        // No existing threads, create a new one
-        await createNewThread();
-      }
-    } catch (error) {
-      console.error('Error initializing chat:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to initialize chat.',
-        variant: 'destructive',
-      });
-    }
-  };
-
-  const createNewThread = async () => {
-    if (!user) return;
-
-    try {
-      const newTitle = `Chat ${new Date().toLocaleString()}`;
-      const { data, error } = await supabase
-        .from('chat_threads')
-        .insert({
-          title: newTitle,
-          user_id: user.id,
-        })
-        .select()
-        .single();
-
-      if (error) throw error;
-      setThreadId(data.id);
-      setThreadTitle(newTitle);
-      // Clear messages for new thread
-      setMessages([]);
-    } catch (error) {
-      console.error('Error creating thread:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to create chat thread.',
-        variant: 'destructive',
-      });
-    }
-  };
-
-  const loadMessages = async (currentThreadId: string) => {
-    try {
-      const { data, error } = await supabase
-        .from('chat_messages')
-        .select('*')
-        .eq('thread_id', currentThreadId)
-        .order('created_at', { ascending: true });
-
-      if (error) throw error;
-      setMessages(data || []);
-    } catch (error) {
-      console.error('Error loading messages:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to load chat history.',
-        variant: 'destructive',
-      });
-    }
-  };
-
-  const saveMessage = async (content: string, role: string) => {
-    if (!threadId) return;
-
-    try {
-      const { data, error } = await supabase
-        .from('chat_messages')
-        .insert({
-          content,
-          role,
-          thread_id: threadId,
-        })
-        .select()
-        .single();
-
-      if (error) throw error;
-      return data;
-    } catch (error) {
-      console.error('Error saving message:', error);
-      return null;
-    }
-  };
-
-  const handleSendMessage = async (userInput: string) => {
-    if (!threadId || !user) return;
-
-    const userMessage = await saveMessage(userInput, 'user');
-    if (userMessage) {
-      setMessages((prev) => [...prev, userMessage]);
-    }
-
-    setIsLoading(true);
-
-    try {
-      // Use authenticated request with JWT token
-      const response = await makeAuthenticatedRequest(
-        apiEndpoints.chat.query(),
-        {
-          method: 'POST',
-          body: JSON.stringify({
-            query: userInput,
-            thread_id: threadId,
-            use_agentic: true,
-          }),
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const data = await response.json();
-      const assistantMessage = await saveMessage(
-        data.answer ||
-          "I apologize, but I couldn't generate a response. Please try again.",
-        'assistant'
-      );
-
-      if (assistantMessage) {
-        setMessages((prev) => [...prev, assistantMessage]);
-      }
-    } catch (error) {
-      console.error('Error sending message:', error);
-      toast({
-        title: 'Error',
-        description:
-          'Failed to send message. Please check your connection and try again.',
-        variant: 'destructive',
-      });
-
-      const errorMessage = await saveMessage(
-        "I'm having trouble connecting right now. Please try again in a moment.",
-        'assistant'
-      );
-      if (errorMessage) {
-        setMessages((prev) => [...prev, errorMessage]);
-      }
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const startNewChat = async () => {
-    await createNewThread();
-  };
-
-  const handleReportMessage = async (messageId: string, reason?: string) => {
-    try {
-      console.log('Message reported:', { messageId, reason, threadId });
-
-      toast({
-        title: 'Report submitted',
-        description:
-          'Thank you for your feedback. We will review this message.',
-      });
-    } catch (error) {
-      console.error('Error reporting message:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to submit report. Please try again.',
-        variant: 'destructive',
-      });
-    }
+  const handleThreadSelect = (threadId: string) => {
+    switchToThread(threadId);
+    // Close sidebar on mobile after selection
+    setIsSidebarOpen(false);
   };
 
   const headerActions = [
     {
       label: 'New Chat',
-      onClick: startNewChat,
+      onClick: createNewThread,
       variant: 'outline' as const,
     },
   ];
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
-      <Header subtitle={threadTitle} actions={headerActions} logoTo="/" />
+      <Header subtitle="Chat" actions={headerActions} logoTo="/" />
 
       {/* Chat Container */}
-      <div className="container mx-auto px-6 py-8 max-w-4xl">
-        <Card className="h-[600px] flex flex-col shadow-xl border-0">
-          <Conversation
-            messages={messages}
-            isLoading={isLoading}
-            onReportMessage={handleReportMessage}
-          />
-          <MessageInput
-            onSendMessage={handleSendMessage}
-            isLoading={isLoading}
-            disabled={!threadId}
-          />
-        </Card>
+      <div className="container mx-auto px-4 md:px-6 py-4 md:py-8 max-w-7xl">
+        <div className="flex gap-6 h-[calc(100vh-200px)] md:h-[600px]">
+          {/* Mobile Sidebar Toggle */}
+          <Button
+            variant="outline"
+            size="sm"
+            className="fixed top-20 left-4 z-50 md:hidden"
+            onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+          >
+            {isSidebarOpen ? (
+              <X className="h-4 w-4" />
+            ) : (
+              <Menu className="h-4 w-4" />
+            )}
+          </Button>
+
+          {/* Thread Sidebar */}
+          <Card
+            className={`
+              ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}
+              md:translate-x-0 transition-transform duration-300 ease-in-out
+              fixed md:relative top-16 md:top-0 left-0 md:left-auto
+              w-80 h-[calc(100vh-4rem)] md:h-full
+              flex flex-col shadow-xl border-0 z-40
+              md:z-auto
+            `}
+          >
+            <ThreadList
+              threads={threads}
+              activeThreadId={activeThreadId}
+              onThreadSelect={handleThreadSelect}
+              onNewThread={createNewThread}
+              onDeleteThread={deleteThread}
+              onRenameThread={renameThread}
+              isLoading={isLoadingThreads}
+            />
+          </Card>
+
+          {/* Overlay for mobile */}
+          {isSidebarOpen && (
+            <div
+              className="fixed inset-0 bg-black bg-opacity-50 z-30 md:hidden"
+              onClick={() => setIsSidebarOpen(false)}
+            />
+          )}
+
+          {/* Main Chat Area */}
+          <Card className="flex-1 flex flex-col shadow-xl border-0 ml-0 md:ml-0">
+            <Conversation
+              messages={messages}
+              isLoading={isLoading}
+              onReportMessage={reportMessage}
+            />
+            <MessageInput
+              onSendMessage={sendMessage}
+              isLoading={isLoading}
+              disabled={!activeThreadId}
+            />
+          </Card>
+        </div>
       </div>
     </div>
   );
