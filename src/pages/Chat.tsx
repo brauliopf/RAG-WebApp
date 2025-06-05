@@ -50,12 +50,12 @@ const Chat = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
+    <div className="h-full min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 flex flex-col">
       <Header subtitle="Chat" actions={headerActions} logoTo="/" />
 
       {/* Chat Container */}
-      <div className="container mx-auto px-4 md:px-6 py-4 md:py-8 max-w-7xl">
-        <div className="flex gap-6 h-[calc(100vh-200px)] md:h-[600px]">
+      <div className="container mx-auto px-4 md:px-6 py-4 md:py-8 max-w-7xl flex-1 flex flex-col">
+        <div className="flex gap-6 flex-1 min-h-0">
           {/* Mobile Sidebar Toggle */}
           <Button
             variant="outline"
@@ -101,7 +101,7 @@ const Chat = () => {
           )}
 
           {/* Main Chat Area */}
-          <Card className="flex-1 flex flex-col shadow-xl border-0 ml-0 md:ml-0">
+          <Card className="flex-1 flex flex-col shadow-xl border-0 ml-0 md:ml-0 min-h-0">
             <Conversation
               messages={messages}
               isLoading={isLoading}

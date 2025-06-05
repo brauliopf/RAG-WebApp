@@ -1,4 +1,3 @@
-
 import { MessageSquare, FileText, Zap, Shield, Upload } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -23,12 +22,12 @@ const Index = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
+    <div className="h-full min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 flex flex-col">
       <Header actions={headerActions} logoTo="/" />
 
       {/* Hero Section */}
-      <div className="container mx-auto px-6 py-16">
-        <div className="text-center mb-16">
+      <div className="container mx-auto px-6 py-8 md:py-16 flex-1 flex flex-col justify-center">
+        <div className="text-center mb-8 md:mb-16">
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 mb-6">
             Intelligent Document
             <span className="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent block">
@@ -64,7 +63,7 @@ const Index = () => {
         </div>
 
         {/* Features */}
-        <div className="grid md:grid-cols-3 gap-8 mb-16">
+        <div className="grid md:grid-cols-3 gap-6 md:gap-8 mb-8 md:mb-16">
           <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow duration-300">
             <CardHeader className="text-center pb-4">
               <div className="mx-auto p-3 bg-blue-100 rounded-full w-16 h-16 flex items-center justify-center mb-4">
@@ -112,7 +111,7 @@ const Index = () => {
         </div>
 
         {/* Status Section */}
-        <div className="bg-white rounded-xl shadow-lg p-8 max-w-2xl mx-auto">
+        <div className="bg-white rounded-xl shadow-lg p-6 md:p-8 max-w-2xl mx-auto">
           <div className="flex items-center justify-center space-x-3 mb-4">
             <Shield className="h-6 w-6 text-green-600" />
             <h3 className="text-xl font-semibold">System Status</h3>

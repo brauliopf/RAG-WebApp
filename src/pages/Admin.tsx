@@ -71,14 +71,14 @@ const Admin = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
+    <div className="h-full min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 flex flex-col">
       <Header
         subtitle="Knowledge Base Manager"
         actions={headerActions}
         logoTo="/"
       />
 
-      <div className="container mx-auto px-6 py-8 max-w-6xl">
+      <div className="container mx-auto px-6 py-8 max-w-6xl flex-1">
         {/* Document Upload Section */}
         <DocumentUpload onDocumentAdded={handleDocumentAdded} />
 
