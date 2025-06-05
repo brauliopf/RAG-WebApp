@@ -1,6 +1,5 @@
-
 import { useState, useEffect } from 'react';
-import { Plus, Cloud } from 'lucide-react';
+import { Plus, MessageSquare } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { toast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
@@ -224,13 +223,13 @@ const Chat = () => {
       mobileIcon: (
         <div className="flex items-center space-x-1">
           <Plus className="h-4 w-4" />
-          <Cloud className="h-4 w-4" />
+          <MessageSquare className="h-4 w-4" />
         </div>
       ),
       icon: (
         <div className="flex items-center space-x-1">
           <Plus className="h-4 w-4" />
-          <Cloud className="h-4 w-4" />
+          <MessageSquare className="h-4 w-4" />
         </div>
       ),
     },

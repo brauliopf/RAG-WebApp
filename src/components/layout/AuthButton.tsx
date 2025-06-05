@@ -53,7 +53,7 @@ const AuthButton = () => {
       <DropdownMenuTrigger asChild>
         <Button variant="outline" className="flex items-center space-x-2">
           <User className="h-4 w-4" />
-          <span>My Account</span>
+          <span className="hidden sm:inline">My Account</span>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-56">
