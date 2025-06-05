@@ -10,6 +10,7 @@ interface HeaderAction {
   onClick?: () => void;
   variant?: 'default' | 'outline' | 'ghost';
   icon?: React.ReactNode;
+  hideOnMobile?: boolean;
 }
 
 interface HeaderProps {
@@ -35,18 +36,18 @@ const Header = ({
                 <div className="p-2 bg-blue-600 rounded-lg">
                   <Bot className="h-6 w-6 text-white" />
                 </div>
-                <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+                <h1 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
                   RAG Assistant
                 </h1>
               </Link>
             )}
             {!showLogo && (
-              <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+              <h1 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
                 RAG Assistant
               </h1>
             )}
             {subtitle && (
-              <div className="flex items-center space-x-3">
+              <div className="hidden sm:flex items-center space-x-3">
                 <div className="w-1 h-6 bg-gradient-to-b from-blue-400 to-indigo-400 rounded-full"></div>
                 <span className="text-base font-medium text-gray-600">
                   {subtitle}
@@ -63,7 +64,9 @@ const Header = ({
                     <Link key={index} to={action.to}>
                       <Button
                         variant={action.variant || 'outline'}
-                        className="flex items-center space-x-2"
+                        className={`flex items-center space-x-2 ${
+                          action.hideOnMobile ? 'hidden sm:flex' : ''
+                        }`}
                       >
                         {action.icon}
                         <span>{action.label}</span>
@@ -74,7 +77,9 @@ const Header = ({
                       key={index}
                       variant={action.variant || 'outline'}
                       onClick={action.onClick}
-                      className="flex items-center space-x-2"
+                      className={`flex items-center space-x-2 ${
+                        action.hideOnMobile ? 'hidden sm:flex' : ''
+                      }`}
                     >
                       {action.icon}
                       <span>{action.label}</span>

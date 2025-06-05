@@ -1,3 +1,4 @@
+
 import { MessageSquare, FileText, Zap, Shield, Upload } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -17,6 +18,7 @@ const Index = () => {
       to: '/rag',
       variant: 'ghost' as const,
       icon: <MessageSquare className="h-4 w-4" />,
+      hideOnMobile: true,
     },
   ];
 
@@ -27,22 +29,22 @@ const Index = () => {
       {/* Hero Section */}
       <div className="container mx-auto px-6 py-16">
         <div className="text-center mb-16">
-          <h2 className="text-5xl font-bold text-gray-900 mb-6">
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 mb-6">
             Intelligent Document
             <span className="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent block">
               Assistant
             </span>
           </h2>
-          <p className="text-xl text-gray-600 max-w-3xl mx-auto mb-8">
+          <p className="text-lg sm:text-xl text-gray-600 max-w-3xl mx-auto mb-8">
             Upload your documents and chat with an AI assistant that understands
             your content. Powered by advanced RAG technology for accurate,
             context-aware responses.
           </p>
-          <div className="flex justify-center space-x-4">
+          <div className="flex flex-col sm:flex-row justify-center gap-4 sm:space-x-4 sm:gap-0">
             <Link to="/rag">
               <Button
                 size="lg"
-                className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 text-lg"
+                className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 text-lg"
               >
                 <MessageSquare className="h-5 w-5 mr-2" />
                 Start Chatting
@@ -52,7 +54,7 @@ const Index = () => {
               <Button
                 size="lg"
                 variant="outline"
-                className="border-blue-600 text-blue-600 hover:bg-blue-50 px-8 py-3 text-lg"
+                className="w-full sm:w-auto border-blue-600 text-blue-600 hover:bg-blue-50 px-8 py-3 text-lg"
               >
                 <Upload className="h-5 w-5 mr-2" />
                 Upload Documents
