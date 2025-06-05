@@ -7,7 +7,6 @@ import { Header } from '@/components/layout';
 import { Conversation, MessageInput } from '@/components/chat';
 import { useAuth } from '@/contexts/AuthContext';
 import { makeAuthenticatedRequest } from '@/lib/auth';
-import { Plus } from 'lucide-react';
 
 interface Message {
   id: string;
@@ -217,10 +216,9 @@ const Chat = () => {
 
   const headerActions = [
     {
-      label: '',
+      label: 'New Chat',
       onClick: startNewChat,
       variant: 'outline' as const,
-      icon: <Plus className="h-4 w-4" />,
     },
   ];
 
