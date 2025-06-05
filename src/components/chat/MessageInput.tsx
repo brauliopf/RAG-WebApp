@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Send, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -43,7 +44,8 @@ const MessageInput = ({
         <Button
           onClick={handleSend}
           disabled={!inputValue.trim() || isLoading || disabled}
-          className="bg-blue-600 hover:bg-blue-700 px-6"
+          className="bg-blue-600 hover:bg-blue-700 px-4"
+          size="default"
         >
           {isLoading ? (
             <Loader2 className="h-4 w-4 animate-spin" />
