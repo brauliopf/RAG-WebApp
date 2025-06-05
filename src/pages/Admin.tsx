@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { MessageSquare } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';

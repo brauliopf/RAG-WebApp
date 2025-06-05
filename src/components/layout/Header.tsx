@@ -1,4 +1,3 @@
-
 import { Bot } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
@@ -69,17 +68,22 @@ const Header = ({
                           action.hideOnMobile ? 'hidden sm:flex' : ''
                         }`}
                       >
-                        {action.mobileIcon && (
-                          <span className="sm:hidden">{action.mobileIcon}</span>
-                        )}
-                        <span className="hidden sm:flex items-center space-x-2">
-                          {action.icon}
-                          <span>{action.label}</span>
-                        </span>
-                        {!action.mobileIcon && (
+                        {action.mobileIcon ? (
+                          <>
+                            <span className="sm:hidden">
+                              {action.mobileIcon}
+                            </span>
+                            <span className="hidden sm:flex items-center space-x-2">
+                              {action.icon}
+                              <span>{action.label}</span>
+                            </span>
+                          </>
+                        ) : (
                           <>
                             {action.icon}
-                            <span className="hidden sm:inline">{action.label}</span>
+                            <span className="hidden sm:inline">
+                              {action.label}
+                            </span>
                           </>
                         )}
                       </Button>
@@ -93,17 +97,20 @@ const Header = ({
                         action.hideOnMobile ? 'hidden sm:flex' : ''
                       }`}
                     >
-                      {action.mobileIcon && (
-                        <span className="sm:hidden">{action.mobileIcon}</span>
-                      )}
-                      <span className="hidden sm:flex items-center space-x-2">
-                        {action.icon}
-                        <span>{action.label}</span>
-                      </span>
-                      {!action.mobileIcon && (
+                      {action.mobileIcon ? (
+                        <>
+                          <span className="sm:hidden">{action.mobileIcon}</span>
+                          <span className="hidden sm:flex items-center space-x-2">
+                            {action.icon}
+                            <span>{action.label}</span>
+                          </span>
+                        </>
+                      ) : (
                         <>
                           {action.icon}
-                          <span className="hidden sm:inline">{action.label}</span>
+                          <span className="hidden sm:inline">
+                            {action.label}
+                          </span>
                         </>
                       )}
                     </Button>

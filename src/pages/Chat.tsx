@@ -237,7 +237,7 @@ const Chat = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
-      <Header subtitle={threadTitle} actions={headerActions} logoTo="/" />
+      <Header subtitle={'Chat'} actions={headerActions} logoTo="/" />
 
       {/* Chat Container */}
       <div className="container mx-auto px-6 py-8 max-w-4xl">
