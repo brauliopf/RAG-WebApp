@@ -1,3 +1,4 @@
+
 import { useRef, useEffect } from 'react';
 import { Bot, User, Loader2 } from 'lucide-react';
 import ReportMessageDialog from './ReportMessageDialog';
@@ -59,7 +60,7 @@ const Conversation = ({
           className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
         >
           <div
-            className={`flex max-w-[80%] ${message.role === 'user' ? 'flex-row-reverse' : 'flex-row'} items-start space-x-3`}
+            className={`flex w-full ${message.role === 'user' ? 'flex-row-reverse' : 'flex-row'} items-start space-x-3`}
           >
             <div
               className={`p-2 rounded-full ${message.role === 'user' ? 'bg-blue-600 ml-3' : 'bg-gray-600 mr-3'}`}
@@ -71,7 +72,7 @@ const Conversation = ({
               )}
             </div>
             <div
-              className={`p-4 rounded-2xl ${
+              className={`p-4 rounded-2xl flex-1 ${
                 message.role === 'user'
                   ? 'bg-blue-600 text-white rounded-br-md'
                   : 'bg-gray-100 text-gray-800 rounded-bl-md'
@@ -98,11 +99,11 @@ const Conversation = ({
 
       {isLoading && (
         <div className="flex justify-start">
-          <div className="flex items-start space-x-3">
+          <div className="flex items-start space-x-3 w-full">
             <div className="p-2 rounded-full bg-gray-600">
               <Bot className="h-4 w-4 text-white" />
             </div>
-            <div className="p-4 rounded-2xl bg-gray-100 rounded-bl-md">
+            <div className="p-4 rounded-2xl bg-gray-100 rounded-bl-md flex-1">
               <div className="flex items-center space-x-2">
                 <Loader2 className="h-4 w-4 animate-spin text-gray-600" />
                 <span className="text-gray-600">...</span>
