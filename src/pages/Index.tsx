@@ -118,7 +118,7 @@ const Index = () => {
           </div>
           <div className="space-y-3">
             <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
-              <span className="font-medium">API Connection</span>
+              <span className="font-medium pr-4">API Connection</span>
               <div className="flex items-center space-x-2">
                 <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
                 <span className="text-green-700 text-sm">Connected</span>
