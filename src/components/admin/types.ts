@@ -7,6 +7,7 @@ export type Document = Tables<'documents'> & {
 
 export interface DocumentUploadProps {
   onDocumentAdded: (document: Document) => void;
+  documents?: Document[];
 }
 
 export interface UrlIngestionProps {

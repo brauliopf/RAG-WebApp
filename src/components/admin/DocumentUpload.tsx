@@ -20,12 +20,29 @@ import {
 import { apiEndpoints } from '@/lib/config';
 import { makeAuthenticatedFormRequest } from '@/lib/auth';
 
-export const DocumentUpload = ({ onDocumentAdded }: DocumentUploadProps) => {
+export const DocumentUpload = ({
+  onDocumentAdded,
+  documents = [],
+}: DocumentUploadProps) => {
   const [isUploading, setIsUploading] = useState(false);
   const [dragActive, setDragActive] = useState(false);
 
+  const MAX_FILES = 5;
+  const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+  const fileLimitReached = documents.length >= MAX_FILES;
+
   const handleFileUpload = async (file: File) => {
     if (!file) return;
+
+    // Enforce file size limit
+    if (file.size > MAX_FILE_SIZE) {
+      toast({
+        title: 'File too large',
+        description: 'File size must be 5MB or less.',
+        variant: 'destructive',
+      });
+      return;
+    }
 
     // Validate file type
     if (!validateFileType(file)) {
@@ -128,10 +145,12 @@ export const DocumentUpload = ({ onDocumentAdded }: DocumentUploadProps) => {
               ? 'border-blue-500 bg-blue-50'
               : 'border-gray-300 hover:border-blue-400 hover:bg-gray-50'
           }`}
-          onDrop={handleDrop}
-          onDragOver={(e) => e.preventDefault()}
-          onDragEnter={() => setDragActive(true)}
-          onDragLeave={() => setDragActive(false)}
+          onDrop={fileLimitReached ? undefined : handleDrop}
+          onDragOver={fileLimitReached ? undefined : (e) => e.preventDefault()}
+          onDragEnter={fileLimitReached ? undefined : () => setDragActive(true)}
+          onDragLeave={
+            fileLimitReached ? undefined : () => setDragActive(false)
+          }
         >
           <Upload className="h-12 w-12 text-gray-400 mx-auto mb-4" />
           <h3 className="text-lg font-semibold mb-2">
@@ -145,11 +164,31 @@ export const DocumentUpload = ({ onDocumentAdded }: DocumentUploadProps) => {
               accept=".pdf,.md,.markdown"
               onChange={handleInputChange}
               className="hidden"
-              disabled={isUploading}
+              disabled={isUploading || fileLimitReached}
             />
-            <Label htmlFor="file-upload" className="cursor-pointer">
-              <Button variant="outline" disabled={isUploading} asChild>
-                <span>{isUploading ? 'Uploading...' : 'Choose Files'}</span>
+            <Label
+              htmlFor="file-upload"
+              className={
+                fileLimitReached ? 'cursor-not-allowed' : 'cursor-pointer'
+              }
+            >
+              <Button
+                variant="outline"
+                disabled={isUploading || fileLimitReached}
+                asChild
+                className={
+                  fileLimitReached
+                    ? 'text-gray-400 border-gray-300 bg-gray-100'
+                    : ''
+                }
+              >
+                <span className={fileLimitReached ? 'text-gray-400' : ''}>
+                  {fileLimitReached
+                    ? 'File Limit Reached'
+                    : isUploading
+                      ? 'Uploading...'
+                      : 'Choose Files'}
+                </span>
               </Button>
             </Label>
           </div>
