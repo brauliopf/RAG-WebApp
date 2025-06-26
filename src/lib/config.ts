@@ -2,8 +2,7 @@
 const config = {
   // API Configuration
   api: {
-    baseUrl:
-      import.meta.env.VITE_API_BASE_URL || 'https://agentic-rag.onrender.com',
+    baseUrl: import.meta.env.VITE_API_BASE_URL,
     // 'http://0.0.0.0:8000',
     endpoints: {
       documents: {
