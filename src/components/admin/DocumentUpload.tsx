@@ -27,8 +27,9 @@ export const DocumentUpload = ({
   const [isUploading, setIsUploading] = useState(false);
   const [dragActive, setDragActive] = useState(false);
 
-  const MAX_FILES = 5;
-  const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+  const MAX_FILES = import.meta.env.VITE_MAX_DOCS_PER_USER || 10;
+  const MAX_FILE_SIZE =
+    (import.meta.env.VITE_MAX_FILE_SIZE || 10) * 1024 * 1024; // MB
   const fileLimitReached = documents.length >= MAX_FILES;
 
   const handleFileUpload = async (file: File) => {
