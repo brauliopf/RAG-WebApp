@@ -5,6 +5,8 @@ import {
   CheckCircle,
   Clock,
   AlertCircle,
+  Link as LinkIcon,
+  Folder,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -146,7 +148,19 @@ export const DocumentsList = ({
                   className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 transition-colors"
                 >
                   <div className="flex items-center space-x-4">
-                    <FileText className="h-8 w-8 text-blue-600" />
+                    {doc.file_type === 'collection' ? (
+                      <Folder className="h-8 w-8 text-blue-600" />
+                    ) : doc.file_type === 'url' ? (
+                      <a
+                        href={doc.title}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        <LinkIcon className="h-8 w-8 text-blue-600 hover:text-blue-800 transition-colors" />
+                      </a>
+                    ) : (
+                      <FileText className="h-8 w-8 text-blue-600" />
+                    )}
                     <div>
                       <h4 className="font-semibold">{doc.title}</h4>
                       <p className="text-sm text-gray-600">
@@ -162,14 +176,25 @@ export const DocumentsList = ({
                       {getStatusIcon(doc.status)}
                       <span className="text-sm capitalize">{doc.status}</span>
                     </div>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleDeleteClick(doc)}
-                      className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
+                    {doc.file_type === 'collection' ? (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => onDocumentDeleted(doc.id)}
+                        className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    ) : (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleDeleteClick(doc)}
+                        className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    )}
                   </div>
                 </div>
               ))}

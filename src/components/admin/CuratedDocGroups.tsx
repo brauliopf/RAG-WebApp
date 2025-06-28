@@ -9,11 +9,13 @@ interface CuratedDocGroupsProps {
   // Optionally allow parent to pass handlers
   onActivate?: (group: DocGroup) => void;
   onDeactivate?: (group: DocGroup) => void;
+  selectedGroups?: string[];
 }
 
 export const CuratedDocGroups = ({
   onActivate,
   onDeactivate,
+  selectedGroups,
 }: CuratedDocGroupsProps) => {
   const [groups, setGroups] = useState<DocGroup[]>([]);
   const [selected, setSelected] = useState<Record<string, boolean>>({});
@@ -54,7 +56,11 @@ export const CuratedDocGroups = ({
               <div key={group.id} className="flex items-center gap-4">
                 <Switch
                   id={`group-toggle-${group.id}`}
-                  checked={!!selected[group.id]}
+                  checked={
+                    selectedGroups
+                      ? selectedGroups.includes(group.id)
+                      : !!selected[group.id]
+                  }
                   onCheckedChange={(checked) => handleToggle(group, checked)}
                 />
                 <Label
