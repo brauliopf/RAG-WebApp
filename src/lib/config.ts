@@ -15,6 +15,9 @@ const config = {
       chat: {
         query: '/api/v1/query',
       },
+      redis: {
+        set: '/api/v1/redis/set',
+      },
     },
   },
 
@@ -38,6 +41,9 @@ export const apiEndpoints = {
   },
   chat: {
     query: () => getApiUrl(config.api.endpoints.chat.query),
+  },
+  redis: {
+    set: () => getApiUrl(config.api.endpoints.redis.set),
   },
 };
 

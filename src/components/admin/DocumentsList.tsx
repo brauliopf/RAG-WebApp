@@ -121,7 +121,7 @@ export const DocumentsList = ({
         <CardHeader>
           <CardTitle className="text-2xl flex items-center gap-2">
             <FileText className="h-6 w-6" />
-            Your Documents
+            Your Knowledge Base
           </CardTitle>
           <CardDescription>
             Manage your uploaded documents and their processing status.

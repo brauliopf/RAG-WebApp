@@ -9,6 +9,9 @@ import {
   DocumentsList,
   Document,
   loadDocuments,
+  CuratedDocGroups,
+  activateDocGroup,
+  deactivateDocGroup,
 } from '@/components/admin';
 
 const Admin = () => {
@@ -79,6 +82,25 @@ const Admin = () => {
       />
 
       <div className="container mx-auto px-6 py-8 max-w-6xl flex-1">
+        {/* Curated Document Groups Section */}
+        <CuratedDocGroups
+          onActivate={async (group) => {
+            if (!user) return;
+            try {
+              await activateDocGroup(user.id, group.id);
+            } catch (error) {
+              console.error('Error activating group:', error);
+            }
+          }}
+          onDeactivate={async (group) => {
+            if (!user) return;
+            try {
+              await deactivateDocGroup(user.id, group.id);
+            } catch (error) {
+              console.error('Error deactivating group:', error);
+            }
+          }}
+        />
         {/* Document Upload Section */}
         <DocumentUpload
           onDocumentAdded={handleDocumentAdded}
