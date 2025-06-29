@@ -164,7 +164,7 @@ export const DocumentsList = ({
                     <div>
                       <h4 className="font-semibold">{doc.title}</h4>
                       <p className="text-sm text-gray-600">
-                        {formatFileSize(doc.file_size)} • Uploaded{' '}
+                        Uploaded{' '}
                         {doc.created_at
                           ? new Date(doc.created_at).toLocaleDateString()
                           : 'Unknown date'}

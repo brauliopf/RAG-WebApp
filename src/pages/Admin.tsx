@@ -72,27 +72,6 @@ const Admin = () => {
     setActiveCollectionIds((prev) =>
       prev.includes(group.id) ? prev : [...prev, group.id]
     );
-    setDocuments((prev) => {
-      const collectionId = `collection-${group.id}`;
-      if (prev.some((doc) => doc.id === collectionId)) return prev;
-      return [
-        {
-          id: collectionId,
-          title: group.group_name,
-          file_type: 'collection',
-          file_size: 0,
-          doc_group: Number(group.id),
-          metadata: null,
-          pinecone_id: null,
-          user_id: user.id,
-          created_at: new Date().toISOString(),
-          updated_at: null,
-          deleted_at: null,
-          status: 'completed',
-        },
-        ...prev,
-      ];
-    });
   };
 
   const handleDeactivateCollection = async (collectionId: string) => {
@@ -103,7 +82,6 @@ const Admin = () => {
     const groupId = match[1];
     await deactivateDocGroup(user.id, groupId);
     setActiveCollectionIds((prev) => prev.filter((id) => id !== groupId));
-    setDocuments((prev) => prev.filter((doc) => doc.id !== collectionId));
   };
 
   const headerActions = [
@@ -124,21 +102,6 @@ const Admin = () => {
       />
 
       <div className="container mx-auto px-6 py-8 max-w-6xl flex-1">
-        {/* Curated Document Groups Section */}
-        <CuratedDocGroups
-          onActivate={handleActivateCollection}
-          onDeactivate={async (group) => {
-            if (!user) return;
-            await deactivateDocGroup(user.id, group.id);
-            setActiveCollectionIds((prev) =>
-              prev.filter((id) => id !== group.id)
-            );
-            setDocuments((prev) =>
-              prev.filter((doc) => doc.id !== `collection-${group.id}`)
-            );
-          }}
-          selectedGroups={activeCollectionIds}
-        />
         {/* Document Upload Section */}
         <DocumentUpload
           onDocumentAdded={handleDocumentAdded}
@@ -159,6 +122,21 @@ const Admin = () => {
             }
           }}
           onDocumentUpdated={handleDocumentUpdated}
+        />
+        {/* Curated Document Groups Section */}
+        <CuratedDocGroups
+          onActivate={handleActivateCollection}
+          onDeactivate={async (group) => {
+            if (!user) return;
+            await deactivateDocGroup(user.id, group.id);
+            setActiveCollectionIds((prev) =>
+              prev.filter((id) => id !== group.id)
+            );
+            setDocuments((prev) =>
+              prev.filter((doc) => doc.id !== `collection-${group.id}`)
+            );
+          }}
+          selectedGroups={activeCollectionIds}
         />
       </div>
     </div>

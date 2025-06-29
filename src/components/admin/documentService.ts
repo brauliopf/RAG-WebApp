@@ -111,14 +111,22 @@ export const loadDocuments = async (): Promise<Document[]> => {
   }));
 };
 
-export const loadDocGroups = async (): Promise<DocGroup[]> => {
-  const { data, error } = await (supabase as any)
+export const loadDocGroups = async (user_id?: string): Promise<DocGroup[]> => {
+  let query = (supabase as any)
     .from('doc_groups')
-    .select('*')
-    .is('deleted_at', null); // Only load non-deleted documents
-  if (error) throw error;
+    .select(
+      user_id
+        ? '*, pdc:profile_doc_group!left(doc_group_id,profile_id,deactivated_at)'
+        : '*'
+    )
+    .is('deleted_at', null);
 
-  console.log('DEBUG >>>> Doc groups', data);
+  if (user_id) {
+    query = query.eq('pdc.profile_id', user_id).is('pdc.deactivated_at', null);
+  }
+
+  const { data, error } = await query;
+  if (error) throw error;
   return data as DocGroup[];
 };
 

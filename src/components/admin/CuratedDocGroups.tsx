@@ -4,6 +4,7 @@ import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { loadDocGroups } from './documentService';
 import type { DocGroup } from './types';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface CuratedDocGroupsProps {
   // Optionally allow parent to pass handlers
@@ -20,17 +21,18 @@ export const CuratedDocGroups = ({
   const [groups, setGroups] = useState<DocGroup[]>([]);
   const [selected, setSelected] = useState<Record<string, boolean>>({});
   const [loading, setLoading] = useState(false);
+  const { user } = useAuth();
 
   useEffect(() => {
     setLoading(true);
-    loadDocGroups()
+    loadDocGroups(user?.id)
       .then((gs) => {
         setGroups(gs);
         // Optionally initialize selected state here
       })
       .catch(() => setGroups([]))
       .finally(() => setLoading(false));
-  }, []);
+  }, [user]);
 
   const handleToggle = (group: DocGroup, checked: boolean) => {
     setSelected((prev) => ({ ...prev, [group.id]: checked }));
@@ -62,6 +64,7 @@ export const CuratedDocGroups = ({
                       : !!selected[group.id]
                   }
                   onCheckedChange={(checked) => handleToggle(group, checked)}
+                  disabled={!user}
                 />
                 <Label
                   htmlFor={`group-toggle-${group.id}`}
