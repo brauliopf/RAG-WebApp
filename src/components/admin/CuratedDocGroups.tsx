@@ -16,7 +16,6 @@ interface CuratedDocGroupsProps {
 export const CuratedDocGroups = ({
   onActivate,
   onDeactivate,
-  selectedGroups,
 }: CuratedDocGroupsProps) => {
   const [groups, setGroups] = useState<DocGroup[]>([]);
   const [selected, setSelected] = useState<Record<string, boolean>>({});
@@ -28,9 +27,19 @@ export const CuratedDocGroups = ({
     loadDocGroups(user?.id)
       .then((gs) => {
         setGroups(gs);
+        const selected = [];
         console.log('DEBUG >>>> Doc groups', gs);
+        gs.forEach((g) => {
+          if (g['pdocg'] && g['pdocg'].length > 0) {
+            selected.push(g.id);
+          }
+        });
+        setSelected(selected.reduce((acc, id) => ({ ...acc, [id]: true }), {}));
       })
-      .catch(() => setGroups([]))
+      .catch(() => {
+        console.log('CATCH22');
+        setGroups([]);
+      })
       .finally(() => setLoading(false));
   }, [user]);
 
@@ -62,11 +71,7 @@ export const CuratedDocGroups = ({
                 <div className="flex items-center space-x-4">
                   <Switch
                     id={`group-toggle-${group.id}`}
-                    checked={
-                      selectedGroups
-                        ? selectedGroups.includes(group.id)
-                        : !!selected[group.id]
-                    }
+                    checked={!!selected[group.id]}
                     onCheckedChange={(checked) => handleToggle(group, checked)}
                     disabled={!user}
                   />

@@ -116,13 +116,15 @@ export const loadDocGroups = async (user_id?: string): Promise<DocGroup[]> => {
     .from('doc_groups')
     .select(
       user_id
-        ? '*, pdc:profile_doc_group!left(doc_group_id,profile_id,deactivated_at)'
+        ? '*, pdocg:profile_doc_group!left(doc_group_id,deactivated_at)'
         : '*'
     )
     .is('deleted_at', null);
 
   if (user_id) {
-    query = query.eq('pdc.profile_id', user_id).is('pdc.deactivated_at', null);
+    query = query
+      .eq('pdocg.profile_id', user_id)
+      .is('pdocg.deactivated_at', null);
   }
 
   const { data, error } = await query;
