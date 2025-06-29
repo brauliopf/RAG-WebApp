@@ -7,6 +7,7 @@ import {
   AlertCircle,
   Link as LinkIcon,
   Folder,
+  Brain,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -122,7 +123,7 @@ export const DocumentsList = ({
       <Card className="shadow-xl border-0">
         <CardHeader>
           <CardTitle className="text-2xl flex items-center gap-2">
-            <FileText className="h-6 w-6" />
+            <Brain className="h-6 w-6" />
             Your Knowledge Base
           </CardTitle>
           <CardDescription>
@@ -145,7 +146,7 @@ export const DocumentsList = ({
               {documents.map((doc) => (
                 <div
                   key={doc.id}
-                  className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 transition-colors"
+                  className="flex flex-col md:flex-row md:items-center justify-between p-4 border rounded-lg hover:bg-gray-50 transition-colors"
                 >
                   <div className="flex items-center space-x-4">
                     {doc.file_type === 'collection' ? (
@@ -162,7 +163,9 @@ export const DocumentsList = ({
                       <FileText className="h-8 w-8 text-blue-600" />
                     )}
                     <div>
-                      <h4 className="font-semibold">{doc.title}</h4>
+                      <h4 className="font-semibold break-all line-clamp-2 max-w-2xs overflow-hidden text-ellipsis">
+                        {doc.title}
+                      </h4>
                       <p className="text-sm text-gray-600">
                         Uploaded{' '}
                         {doc.created_at
@@ -171,30 +174,19 @@ export const DocumentsList = ({
                       </p>
                     </div>
                   </div>
-                  <div className="flex items-center space-x-4">
+                  <div className="flex flex-row w-full md:w-auto justify-end md:items-center md:ml-4 mt-2 md:mt-0">
                     <div className="flex items-center space-x-2">
                       {getStatusIcon(doc.status)}
                       <span className="text-sm capitalize">{doc.status}</span>
                     </div>
-                    {doc.file_type === 'collection' ? (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => onDocumentDeleted(doc.id)}
-                        className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    ) : (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleDeleteClick(doc)}
-                        className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    )}
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleDeleteClick(doc)}
+                      className="text-red-600 hover:text-red-700 hover:bg-red-50 ml-2"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
                   </div>
                 </div>
               ))}

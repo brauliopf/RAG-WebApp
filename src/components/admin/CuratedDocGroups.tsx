@@ -28,7 +28,7 @@ export const CuratedDocGroups = ({
     loadDocGroups(user?.id)
       .then((gs) => {
         setGroups(gs);
-        // Optionally initialize selected state here
+        console.log('DEBUG >>>> Doc groups', gs);
       })
       .catch(() => setGroups([]))
       .finally(() => setLoading(false));
@@ -43,7 +43,7 @@ export const CuratedDocGroups = ({
   return (
     <Card className="mb-8 shadow-xl border-0">
       <CardHeader>
-        <CardTitle className="text-2xl flex items-center gap-2">
+        <CardTitle className="text-xl flex items-center gap-2">
           Access Curated Documents
         </CardTitle>
       </CardHeader>
@@ -53,25 +53,25 @@ export const CuratedDocGroups = ({
         ) : groups.length === 0 ? (
           <div className="text-gray-500">No curated groups available.</div>
         ) : (
-          <div className="flex flex-col gap-4">
+          <div className="space-y-4">
             {groups.map((group) => (
-              <div key={group.id} className="flex items-center gap-4">
-                <Switch
-                  id={`group-toggle-${group.id}`}
-                  checked={
-                    selectedGroups
-                      ? selectedGroups.includes(group.id)
-                      : !!selected[group.id]
-                  }
-                  onCheckedChange={(checked) => handleToggle(group, checked)}
-                  disabled={!user}
-                />
-                <Label
-                  htmlFor={`group-toggle-${group.id}`}
-                  className="flex items-center gap-2 cursor-pointer"
-                >
-                  <span>
-                    {group.group_name} (Source:
+              <div
+                key={group.id}
+                className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 transition-colors"
+              >
+                <div className="flex items-center space-x-4">
+                  <Switch
+                    id={`group-toggle-${group.id}`}
+                    checked={
+                      selectedGroups
+                        ? selectedGroups.includes(group.id)
+                        : !!selected[group.id]
+                    }
+                    onCheckedChange={(checked) => handleToggle(group, checked)}
+                    disabled={!user}
+                  />
+                  <div>
+                    <h4 className="font-semibold">{group.group_name}</h4>
                     {group.source_link && (
                       <a
                         href={group.source_link}
@@ -79,12 +79,11 @@ export const CuratedDocGroups = ({
                         rel="noopener noreferrer"
                         className="text-blue-600 underline text-xs"
                       >
-                        {group.source_link}
+                        External reference
                       </a>
                     )}
-                    )
-                  </span>
-                </Label>
+                  </div>
+                </div>
               </div>
             ))}
           </div>
