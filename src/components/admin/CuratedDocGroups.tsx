@@ -53,7 +53,7 @@ export const CuratedDocGroups = ({
     <Card className="mb-8 shadow-xl border-0">
       <CardHeader>
         <CardTitle className="text-xl flex items-center gap-2">
-          Access Curated Documents
+          Curated Documents
         </CardTitle>
       </CardHeader>
       <CardContent>

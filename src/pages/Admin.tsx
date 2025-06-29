@@ -103,39 +103,39 @@ const Admin = () => {
 
       <div className="container mx-auto px-6 py-8 max-w-6xl flex-1">
         {/* Documents List Section */}
-        <DocumentsList
-          documents={documents}
-          onDocumentDeleted={(id) => {
-            if (id.startsWith('collection-')) {
-              handleDeactivateCollection(id);
-            } else {
-              handleDocumentDeleted(id);
-            }
-          }}
-          onDocumentUpdated={handleDocumentUpdated}
-        />
-        {/* Curated Document Groups Section */}
-        <CuratedDocGroups
-          onActivate={handleActivateCollection}
-          onDeactivate={async (group) => {
-            if (!user) return;
-            await deactivateDocGroup(user.id, group.id);
-            setActiveCollectionIds((prev) =>
-              prev.filter((id) => id !== group.id)
-            );
-            setDocuments((prev) =>
-              prev.filter((doc) => doc.id !== `collection-${group.id}`)
-            );
-          }}
-          selectedGroups={activeCollectionIds}
-        />
-
+        <div className="flex flex-col">
+          <DocumentsList
+            documents={documents}
+            onDocumentDeleted={(id) => {
+              if (id.startsWith('collection-')) {
+                handleDeactivateCollection(id);
+              } else {
+                handleDocumentDeleted(id);
+              }
+            }}
+            onDocumentUpdated={handleDocumentUpdated}
+          />
+          {/* Curated Document Groups Section */}
+          <CuratedDocGroups
+            onActivate={handleActivateCollection}
+            onDeactivate={async (group) => {
+              if (!user) return;
+              await deactivateDocGroup(user.id, group.id);
+              setActiveCollectionIds((prev) =>
+                prev.filter((id) => id !== group.id)
+              );
+              setDocuments((prev) =>
+                prev.filter((doc) => doc.id !== `collection-${group.id}`)
+              );
+            }}
+            selectedGroups={activeCollectionIds}
+          />
+        </div>
         {/* Document Upload Section */}
         <DocumentUpload
           onDocumentAdded={handleDocumentAdded}
           documents={documents}
         />
-
         {/* URL Ingestion Section */}
         <UrlIngestion onDocumentAdded={handleDocumentAdded} />
       </div>

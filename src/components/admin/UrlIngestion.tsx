@@ -155,7 +155,7 @@ export const UrlIngestion = ({ onDocumentAdded }: UrlIngestionProps) => {
   return (
     <Card className="mb-8 shadow-xl border-0">
       <CardHeader>
-        <CardTitle className="text-2xl flex items-center gap-2">
+        <CardTitle className="text-xl flex items-center gap-2">
           <LinkIcon className="h-6 w-6" />
           Ingest from URL
         </CardTitle>
