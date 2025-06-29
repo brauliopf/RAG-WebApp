@@ -102,15 +102,6 @@ const Admin = () => {
       />
 
       <div className="container mx-auto px-6 py-8 max-w-6xl flex-1">
-        {/* Document Upload Section */}
-        <DocumentUpload
-          onDocumentAdded={handleDocumentAdded}
-          documents={documents}
-        />
-
-        {/* URL Ingestion Section */}
-        <UrlIngestion onDocumentAdded={handleDocumentAdded} />
-
         {/* Documents List Section */}
         <DocumentsList
           documents={documents}
@@ -138,6 +129,15 @@ const Admin = () => {
           }}
           selectedGroups={activeCollectionIds}
         />
+
+        {/* Document Upload Section */}
+        <DocumentUpload
+          onDocumentAdded={handleDocumentAdded}
+          documents={documents}
+        />
+
+        {/* URL Ingestion Section */}
+        <UrlIngestion onDocumentAdded={handleDocumentAdded} />
       </div>
     </div>
   );
