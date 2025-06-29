@@ -96,11 +96,12 @@ export const deleteDocumentFromSupabase = async (id: string): Promise<void> => {
   if (error) throw error;
 };
 
-export const loadDocuments = async (): Promise<Document[]> => {
+export const loadDocuments = async (user_id: string): Promise<Document[]> => {
   const { data, error } = await supabase
     .from('documents')
     .select('*')
     .is('deleted_at', null) // Only load non-deleted documents
+    .eq('user_id', user_id)
     .order('created_at', { ascending: false });
 
   if (error) throw error;

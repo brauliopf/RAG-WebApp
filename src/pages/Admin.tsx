@@ -28,7 +28,7 @@ const Admin = () => {
 
   const loadDocumentsData = async () => {
     try {
-      const docs = await loadDocuments();
+      const docs = await loadDocuments(user.id);
       setDocuments(docs);
     } catch (error) {
       console.error('Error loading documents:', error);
