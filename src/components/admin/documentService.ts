@@ -205,12 +205,14 @@ export const syncUserDocGroupsToRedis = async (profile_id: string) => {
   // 2. Get db_ids for those groups
   const { data: docGroups, error: docGroupError } = await supabase
     .from('doc_groups')
-    .select('db_id')
+    .select('group_name')
     .in('id', docGroupIds);
   if (docGroupError) throw docGroupError;
 
-  const dbIds = (docGroups || []).map((g: any) => g.db_id).filter(Boolean);
-  const value = dbIds.join(',');
+  const groupNames = (docGroups || [])
+    .map((g: any) => g.group_name)
+    .filter(Boolean);
+  const value = groupNames.join(',');
 
   // 3. Update Redis
   await makeAuthenticatedRequest(apiEndpoints.redis.set(), {

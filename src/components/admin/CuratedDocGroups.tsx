@@ -37,7 +37,6 @@ export const CuratedDocGroups = ({
         setSelected(selected.reduce((acc, id) => ({ ...acc, [id]: true }), {}));
       })
       .catch(() => {
-        console.log('CATCH22');
         setGroups([]);
       })
       .finally(() => setLoading(false));
