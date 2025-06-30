@@ -82,11 +82,7 @@ export const DocumentUpload = ({
       }
 
       // Update document status to completed
-      await updateDocumentStatus(
-        newDoc.id,
-        'completed',
-        `pinecone_${Date.now()}`
-      );
+      await updateDocumentStatus(newDoc.id, 'completed');
 
       // Update parent with completed status
       onDocumentAdded({ ...newDoc, status: 'completed' });

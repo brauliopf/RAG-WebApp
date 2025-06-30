@@ -20,7 +20,6 @@ export const saveDocumentToSupabase = async (
         title: file.name,
         file_type: getFileType(file),
         file_size: file.size,
-        pinecone_id: null,
         user_id: user.id,
       })
       .select()
@@ -67,14 +66,10 @@ export const saveUrlToSupabase = async (
 
 export const updateDocumentStatus = async (
   id: string,
-  status: Document['status'],
-  pinecone_id?: string
+  status: Document['status']
 ): Promise<void> => {
   try {
     const updateData: any = {};
-    if (pinecone_id) {
-      updateData.pinecone_id = pinecone_id;
-    }
 
     const { error } = await supabase
       .from('documents')
@@ -108,7 +103,7 @@ export const loadDocuments = async (user_id: string): Promise<Document[]> => {
 
   return data.map((doc) => ({
     ...doc,
-    status: doc.pinecone_id ? ('completed' as const) : ('processing' as const),
+    status: 'completed' as const,
   }));
 };
 
