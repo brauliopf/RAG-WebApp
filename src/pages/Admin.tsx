@@ -137,7 +137,7 @@ const Admin = () => {
           documents={documents}
         />
         {/* URL Ingestion Section */}
-        <UrlIngestion onDocumentAdded={handleDocumentAdded} />
+        {/* <UrlIngestion onDocumentAdded={handleDocumentAdded} /> */}
       </div>
     </div>
   );
