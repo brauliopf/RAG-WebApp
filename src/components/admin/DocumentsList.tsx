@@ -119,7 +119,7 @@ export const DocumentsList = ({
   };
 
   return (
-    <>
+    <div className="flex flex-col mb-8">
       <Card className="shadow-xl border-0">
         <CardHeader>
           <CardTitle className="text-2xl flex items-center gap-2">
@@ -235,6 +235,6 @@ export const DocumentsList = ({
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </>
+    </div>
   );
 };
