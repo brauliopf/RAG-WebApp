@@ -7,6 +7,7 @@ import { AuthProvider } from '@/contexts/AuthContext';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import Index from './pages/Index';
 import Chat from './pages/Chat';
+import KnowledgeBase from './pages/KnowledgeBase';
 import Admin from './pages/Admin';
 import Auth from './pages/Auth';
 import NotFound from './pages/NotFound';
@@ -32,14 +33,8 @@ const App = () => (
                   </ProtectedRoute>
                 }
               />
-              <Route
-                path="/rag/admin"
-                element={
-                  <ProtectedRoute>
-                    <Admin />
-                  </ProtectedRoute>
-                }
-              />
+              <Route path="/knowledge-base" element={<KnowledgeBase />} />
+              <Route path="/admin" element={<Admin />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>

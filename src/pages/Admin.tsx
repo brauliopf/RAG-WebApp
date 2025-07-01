@@ -1,144 +1,178 @@
-import { useState, useEffect } from 'react';
-import { MessageSquare } from 'lucide-react';
-import { toast } from '@/hooks/use-toast';
-import { Header } from '@/components/layout';
+import React, { useEffect, useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import {
-  DocumentUpload,
-  UrlIngestion,
-  DocumentsList,
-  Document,
-  loadDocuments,
-  CuratedDocGroups,
-  activateDocGroup,
-  deactivateDocGroup,
-  loadDocuments as loadAllDocuments,
-} from '@/components/admin';
+import { useNavigate } from 'react-router-dom';
+import { supabase } from '@/integrations/supabase/client';
+import { Switch } from '@/components/ui/switch';
+
+const FEATURE_FLAG_KEY = 'add_content_collections';
 
 const Admin = () => {
   const { user } = useAuth();
-  const [documents, setDocuments] = useState<Document[]>([]);
-  const [activeCollectionIds, setActiveCollectionIds] = useState<string[]>([]);
+  const navigate = useNavigate();
+  const [profile, setProfile] = useState<{ id: string; role: string } | null>(
+    null
+  );
+  const [loading, setLoading] = useState(true);
+  const [flagLoading, setFlagLoading] = useState(true);
+  const [showCollectionToggles, setShowCollectionToggles] = useState(false);
+  const [docGroups, setDocGroups] = useState<
+    { id: string; group_name: string }[]
+  >([]);
+  const [selectedGroup, setSelectedGroup] = useState('');
+  const [file, setFile] = useState<File | null>(null);
+  const [groupInput, setGroupInput] = useState('');
 
+  // Fetch profile for role check
   useEffect(() => {
-    if (user) {
-      loadDocumentsData();
-    }
+    if (!user) return;
+    setLoading(true);
+    supabase
+      .from('profiles')
+      .select('id, role')
+      .eq('id', user.id)
+      .single()
+      .then(({ data }) => {
+        setProfile(data);
+        setLoading(false);
+      });
   }, [user]);
 
-  const loadDocumentsData = async () => {
-    try {
-      const docs = await loadDocuments(user.id);
-      setDocuments(docs);
-    } catch (error) {
-      console.error('Error loading documents:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to load documents.',
-        variant: 'destructive',
+  // Fetch feature flag
+  useEffect(() => {
+    setFlagLoading(true);
+    supabase
+      .from('feature_flags')
+      .select('enabled')
+      .eq('key', FEATURE_FLAG_KEY)
+      .single()
+      .then(({ data }) => {
+        setShowCollectionToggles(!!data?.enabled);
+        setFlagLoading(false);
       });
+  }, []);
+
+  // Fetch doc_groups
+  useEffect(() => {
+    supabase
+      .from('doc_groups')
+      .select('id, group_name')
+      .order('group_name', { ascending: true })
+      .then(({ data }) => {
+        setDocGroups(
+          (data || []).map((g) => ({
+            id: String(g.id),
+            group_name: g.group_name,
+          }))
+        );
+      });
+  }, []);
+
+  // Role-based redirect
+  useEffect(() => {
+    if (!loading && profile && profile.role !== 'admin') {
+      navigate('/');
     }
+  }, [profile, loading, navigate]);
+
+  const handleToggle = async (checked: boolean) => {
+    setFlagLoading(true);
+    const { error } = await supabase
+      .from('feature_flags')
+      .update({ enabled: checked })
+      .eq('key', FEATURE_FLAG_KEY);
+    if (!error) setShowCollectionToggles(checked);
+    setFlagLoading(false);
   };
 
-  const handleDocumentAdded = (document: Document) => {
-    setDocuments((prev) => {
-      // Check if document already exists (for status updates)
-      const existingIndex = prev.findIndex((doc) => doc.id === document.id);
-      if (existingIndex >= 0) {
-        // Update existing document
-        const updated = [...prev];
-        updated[existingIndex] = document;
-        return updated;
-      } else {
-        // Add new document
-        return [document, ...prev];
-      }
-    });
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const f = e.target.files?.[0] || null;
+    if (f && f.type !== 'application/pdf') {
+      alert('Only PDF files are allowed.');
+      return;
+    }
+    setFile(f);
   };
 
-  const handleDocumentDeleted = (id: string) => {
-    setDocuments((prev) => prev.filter((doc) => doc.id !== id));
+  const handleGroupInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setGroupInput(e.target.value);
+    setSelectedGroup(e.target.value);
   };
 
-  const handleDocumentUpdated = (document: Document) => {
-    setDocuments((prev) =>
-      prev.map((doc) => (doc.id === document.id ? document : doc))
-    );
+  const handleGroupSelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setSelectedGroup(e.target.value);
+    setGroupInput(e.target.value);
   };
 
-  const handleActivateCollection = async (group: any) => {
-    if (!user) return;
-    await activateDocGroup(user.id, group.id);
-    setActiveCollectionIds((prev) =>
-      prev.includes(group.id) ? prev : [...prev, group.id]
-    );
-  };
+  if (loading || !user) {
+    return <div>Loading...</div>;
+  }
 
-  const handleDeactivateCollection = async (collectionId: string) => {
-    if (!user) return;
-    // Extract group id from collectionId (format: 'collection-{group.id}')
-    const match = collectionId.match(/^collection-(\d+)$/);
-    if (!match) return;
-    const groupId = match[1];
-    await deactivateDocGroup(user.id, groupId);
-    setActiveCollectionIds((prev) => prev.filter((id) => id !== groupId));
-  };
-
-  const headerActions = [
-    {
-      label: 'Back to Chat',
-      to: '/rag',
-      variant: 'outline' as const,
-      icon: <MessageSquare className="h-4 w-4" />,
-    },
-  ];
+  if (!profile || profile.role !== 'admin') {
+    return <div>Not authorized.</div>;
+  }
 
   return (
-    <div className="h-full min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 flex flex-col">
-      <Header
-        subtitle="Knowledge Base Manager"
-        actions={headerActions}
-        logoTo="/"
-      />
-
-      <div className="container mx-auto px-6 py-8 max-w-6xl flex-1">
-        {/* Documents List Section */}
-        <div className="flex flex-col">
-          <DocumentsList
-            documents={documents}
-            onDocumentDeleted={(id) => {
-              if (id.startsWith('collection-')) {
-                handleDeactivateCollection(id);
-              } else {
-                handleDocumentDeleted(id);
-              }
-            }}
-            onDocumentUpdated={handleDocumentUpdated}
+    <div className="min-h-screen p-8 bg-white">
+      <h1 className="text-3xl font-bold mb-2">Admin Dashboard</h1>
+      <h2 className="text-lg font-semibold mb-4 text-gray-700">
+        Feature flags
+      </h2>
+      <div className="flex flex-col gap-4 mb-8">
+        <div className="flex items-center gap-3">
+          <Switch
+            checked={showCollectionToggles}
+            onCheckedChange={handleToggle}
+            disabled={flagLoading}
           />
-          {/* Curated Document Groups Section */}
-          <CuratedDocGroups
-            onActivate={handleActivateCollection}
-            onDeactivate={async (group) => {
-              if (!user) return;
-              await deactivateDocGroup(user.id, group.id);
-              setActiveCollectionIds((prev) =>
-                prev.filter((id) => id !== group.id)
-              );
-              setDocuments((prev) =>
-                prev.filter((doc) => doc.id !== `collection-${group.id}`)
-              );
-            }}
-            selectedGroups={activeCollectionIds}
+          <span className="text-base">
+            Show Collection Toggles in Knowledge Base
+          </span>
+        </div>
+      </div>
+      <h2 className="text-lg font-semibold mb-4 text-gray-700">
+        Create Content Collection
+      </h2>
+      <form className="flex flex-col gap-4 max-w-lg">
+        <div className="flex flex-col gap-1">
+          <label htmlFor="pdf-upload" className="font-medium">
+            PDF File
+          </label>
+          <input
+            id="pdf-upload"
+            type="file"
+            accept="application/pdf"
+            onChange={handleFileChange}
           />
         </div>
-        {/* Document Upload Section */}
-        <DocumentUpload
-          onDocumentAdded={handleDocumentAdded}
-          documents={documents}
-        />
-        {/* URL Ingestion Section */}
-        {/* <UrlIngestion onDocumentAdded={handleDocumentAdded} /> */}
-      </div>
+        <div className="flex flex-col gap-1">
+          <label htmlFor="group-name" className="font-medium">
+            Group Name
+          </label>
+          <select
+            id="group-name"
+            value={selectedGroup}
+            onChange={handleGroupSelect}
+            className="border rounded px-2 py-1"
+          >
+            <option value="">-- Select existing group --</option>
+            {docGroups.map((g) => (
+              <option key={g.id} value={g.group_name}>
+                {g.group_name}
+              </option>
+            ))}
+          </select>
+          <span className="text-xs text-gray-500">
+            Or add a new group name below:
+          </span>
+          <input
+            type="text"
+            placeholder="New group name"
+            value={groupInput}
+            onChange={handleGroupInputChange}
+            className="border rounded px-2 py-1"
+          />
+        </div>
+      </form>
     </div>
   );
 };

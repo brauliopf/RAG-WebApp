@@ -15,21 +15,21 @@ export type Database = {
           created_at: string | null
           id: string
           role: string
-          thread_id: string
+          thread_id: string | null
         }
         Insert: {
           content: string
           created_at?: string | null
           id?: string
           role: string
-          thread_id: string
+          thread_id?: string | null
         }
         Update: {
           content?: string
           created_at?: string | null
           id?: string
           role?: string
-          thread_id?: string
+          thread_id?: string | null
         }
         Relationships: [
           {
@@ -63,11 +63,19 @@ export type Database = {
           updated_at?: string | null
           user_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "chat_threads_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       doc_groups: {
         Row: {
-          created_at: string
+          created_at: string | null
           db_id: string
           deleted_at: string | null
           group_name: string
@@ -75,7 +83,7 @@ export type Database = {
           source_link: string | null
         }
         Insert: {
-          created_at?: string
+          created_at?: string | null
           db_id: string
           deleted_at?: string | null
           group_name: string
@@ -83,7 +91,7 @@ export type Database = {
           source_link?: string | null
         }
         Update: {
-          created_at?: string
+          created_at?: string | null
           db_id?: string
           deleted_at?: string | null
           group_name?: string
@@ -101,7 +109,6 @@ export type Database = {
           file_type: string
           id: string
           metadata: Json | null
-          pinecone_id: string | null
           title: string
           updated_at: string | null
           user_id: string | null
@@ -114,7 +121,6 @@ export type Database = {
           file_type: string
           id?: string
           metadata?: Json | null
-          pinecone_id?: string | null
           title: string
           updated_at?: string | null
           user_id?: string | null
@@ -127,7 +133,6 @@ export type Database = {
           file_type?: string
           id?: string
           metadata?: Json | null
-          pinecone_id?: string | null
           title?: string
           updated_at?: string | null
           user_id?: string | null
@@ -140,25 +145,50 @@ export type Database = {
             referencedRelation: "doc_groups"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "documents_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
         ]
+      }
+      feature_flags: {
+        Row: {
+          created_at: string
+          enabled: boolean
+          key: string
+        }
+        Insert: {
+          created_at?: string
+          enabled: boolean
+          key: string
+        }
+        Update: {
+          created_at?: string
+          enabled?: boolean
+          key?: string
+        }
+        Relationships: []
       }
       profile_doc_group: {
         Row: {
-          activated_at: string
+          activated_at: string | null
           deactivated_at: string | null
           doc_group_id: number | null
           id: number
           profile_id: string | null
         }
         Insert: {
-          activated_at?: string
+          activated_at?: string | null
           deactivated_at?: string | null
           doc_group_id?: number | null
           id?: number
           profile_id?: string | null
         }
         Update: {
-          activated_at?: string
+          activated_at?: string | null
           deactivated_at?: string | null
           doc_group_id?: number | null
           id?: number
@@ -186,18 +216,21 @@ export type Database = {
           created_at: string | null
           email: string | null
           id: string
+          role: string
           updated_at: string | null
         }
         Insert: {
           created_at?: string | null
           email?: string | null
           id: string
+          role?: string
           updated_at?: string | null
         }
         Update: {
           created_at?: string | null
           email?: string | null
           id?: string
+          role?: string
           updated_at?: string | null
         }
         Relationships: []

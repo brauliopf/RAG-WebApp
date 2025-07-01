@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { User, LogOut, FileText } from 'lucide-react';
@@ -41,9 +40,7 @@ const AuthButton = () => {
   if (!user) {
     return (
       <Link to="/auth">
-        <Button variant="outline">
-          Sign In
-        </Button>
+        <Button variant="outline">Sign In</Button>
       </Link>
     );
   }
@@ -57,18 +54,16 @@ const AuthButton = () => {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-56">
-        <div className="px-2 py-1.5 text-sm font-medium">
-          {user.email}
-        </div>
+        <div className="px-2 py-1.5 text-sm font-medium">{user.email}</div>
         <DropdownMenuSeparator />
         <DropdownMenuItem asChild>
-          <Link to="/rag/admin" className="flex items-center">
+          <Link to="/knowledge-base" className="flex items-center">
             <FileText className="mr-2 h-4 w-4" />
             Manage Documents
           </Link>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
-        <DropdownMenuItem 
+        <DropdownMenuItem
           onClick={handleSignOut}
           disabled={loading}
           className="flex items-center text-red-600"

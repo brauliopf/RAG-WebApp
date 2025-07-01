@@ -49,7 +49,7 @@ const Index = () => {
                 Start Chatting
               </Button>
             </Link>
-            <Link to="/rag/admin">
+            <Link to="/knowledge-base">
               <Button
                 size="lg"
                 variant="outline"
