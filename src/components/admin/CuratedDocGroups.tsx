@@ -2,9 +2,10 @@ import { useEffect, useState } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
-import { loadDocGroups } from './documentService';
+import { loadDocGroupsFromDB } from './documentService';
 import type { DocGroup } from './types';
 import { useAuth } from '@/contexts/AuthContext';
+import { LibraryBig, SquareArrowOutUpRight } from 'lucide-react';
 
 interface CuratedDocGroupsProps {
   // Optionally allow parent to pass handlers
@@ -24,11 +25,10 @@ export const CuratedDocGroups = ({
 
   useEffect(() => {
     setLoading(true);
-    loadDocGroups(user?.id)
+    loadDocGroupsFromDB(user?.id)
       .then((gs) => {
         setGroups(gs);
         const selected = [];
-        console.log('DEBUG >>>> Doc groups', gs);
         gs.forEach((g) => {
           if (g['pdocg'] && g['pdocg'].length > 0) {
             selected.push(g.id);
@@ -41,12 +41,6 @@ export const CuratedDocGroups = ({
       })
       .finally(() => setLoading(false));
   }, [user]);
-
-  const handleToggle = (group: DocGroup, checked: boolean) => {
-    setSelected((prev) => ({ ...prev, [group.id]: checked }));
-    if (checked && onActivate) onActivate(group);
-    if (!checked && onDeactivate) onDeactivate(group);
-  };
 
   return (
     <Card className="mb-8 shadow-xl border-0">
@@ -68,24 +62,21 @@ export const CuratedDocGroups = ({
                 className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 transition-colors"
               >
                 <div className="flex items-center space-x-4">
-                  <Switch
-                    id={`group-toggle-${group.id}`}
-                    checked={!!selected[group.id]}
-                    onCheckedChange={(checked) => handleToggle(group, checked)}
-                    disabled={!user}
-                  />
                   <div>
-                    <h4 className="font-semibold">{group.group_name}</h4>
-                    {group.source_link && (
-                      <a
-                        href={group.source_link}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-blue-600 underline text-xs"
-                      >
-                        External reference
-                      </a>
-                    )}
+                    <h4 className="font-semibold flex items-center gap-2">
+                      <LibraryBig className="w-5 inline-block align-middle" />
+                      <span>{group.group_name}</span>
+                      {group.source_link && (
+                        <a
+                          href={group.source_link}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-blue-600 underline text-xs"
+                        >
+                          <SquareArrowOutUpRight className="w-4 h-4 inline-block align-middle" />
+                        </a>
+                      )}
+                    </h4>
                   </div>
                 </div>
               </div>

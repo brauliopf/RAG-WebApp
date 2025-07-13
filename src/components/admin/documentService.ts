@@ -107,20 +107,18 @@ export const loadDocuments = async (user_id: string): Promise<Document[]> => {
   }));
 };
 
-export const loadDocGroups = async (user_id?: string): Promise<DocGroup[]> => {
+export const loadDocGroupsFromDB = async (
+  user_id?: string
+): Promise<DocGroup[]> => {
+  // load only doc_groups that are available to the user
+  // if no user_id, then return all doc_groups (necessary for the admin page)
   let query = (supabase as any)
     .from('doc_groups')
-    .select(
-      user_id
-        ? '*, pdocg:profile_doc_group!left(doc_group_id,deactivated_at)'
-        : '*'
-    )
+    .select(user_id ? '*, pdocg:profile_doc_group!inner(doc_group_id)' : '*')
     .is('deleted_at', null);
 
   if (user_id) {
-    query = query
-      .eq('pdocg.profile_id', user_id)
-      .is('pdocg.deactivated_at', null);
+    query = query.eq('pdocg.profile_id', user_id);
   }
 
   const { data, error } = await query;
