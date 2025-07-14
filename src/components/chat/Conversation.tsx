@@ -1,4 +1,3 @@
-
 import { useRef, useEffect } from 'react';
 import { Bot, User, Loader2 } from 'lucide-react';
 import ReportMessageDialog from './ReportMessageDialog';

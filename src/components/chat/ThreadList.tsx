@@ -106,7 +106,7 @@ const ThreadList = ({
 
   return (
     <>
-      <div className="flex flex-col h-full">
+      <div className="flex-1 flex-col h-full overflow-y-auto">
         {/* Header */}
         <div className="p-4 border-b">
           <Button

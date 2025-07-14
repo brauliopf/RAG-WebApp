@@ -76,20 +76,22 @@ const Chat = () => {
               ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}
               md:translate-x-0 transition-transform duration-300 ease-in-out
               fixed md:relative top-16 md:top-0 left-0 md:left-auto
-              w-80 h-[calc(100vh-4rem)] md:h-full
+              w-80 h-[calc(100vh-4rem)] md:h-[calc(100vh-8rem)]
               flex flex-col shadow-xl border-0 z-40
-              md:z-auto
+              md:z-auto overflow-hidden
             `}
           >
-            <ThreadList
-              threads={threads}
-              activeThreadId={activeThreadId}
-              onThreadSelect={handleThreadSelect}
-              onNewThread={createNewThread}
-              onDeleteThread={deleteThread}
-              onRenameThread={renameThread}
-              isLoading={isLoadingThreads}
-            />
+            <div className="flex-1 overflow-y-auto">
+              <ThreadList
+                threads={threads}
+                activeThreadId={activeThreadId}
+                onThreadSelect={handleThreadSelect}
+                onNewThread={createNewThread}
+                onDeleteThread={deleteThread}
+                onRenameThread={renameThread}
+                isLoading={isLoadingThreads}
+              />
+            </div>
           </Card>
 
           {/* Overlay for mobile */}
@@ -101,12 +103,14 @@ const Chat = () => {
           )}
 
           {/* Main Chat Area */}
-          <Card className="flex-1 flex flex-col shadow-xl border-0 ml-0 md:ml-0 min-h-0">
-            <Conversation
-              messages={messages}
-              isLoading={isLoading}
-              onReportMessage={reportMessage}
-            />
+          <Card className="flex-1 flex flex-col shadow-xl border-0 ml-0 md:ml-0 min-h-0 h-[calc(100vh-4rem)] md:h-[calc(100vh-8rem)]">
+            <div className="flex-1 overflow-y-auto">
+              <Conversation
+                messages={messages}
+                isLoading={isLoading}
+                onReportMessage={reportMessage}
+              />
+            </div>
             <MessageInput
               onSendMessage={sendMessage}
               isLoading={isLoading}
