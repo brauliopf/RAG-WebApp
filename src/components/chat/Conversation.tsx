@@ -1,16 +1,7 @@
 import { useRef, useEffect } from 'react';
 import { Bot, User, Loader2 } from 'lucide-react';
 import ReportMessageDialog from './ReportMessageDialog';
-
-interface Message {
-  id: string;
-  content: string;
-  role: string;
-  message_type: string;
-  stt_content: string;
-  thread_id: string;
-  created_at: string;
-}
+import { Message } from '@/hooks/use-chat';
 
 interface ConversationProps {
   messages: Message[];
