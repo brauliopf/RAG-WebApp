@@ -6,6 +6,8 @@ interface Message {
   id: string;
   content: string;
   role: string;
+  message_type: string;
+  stt_content: string;
   thread_id: string;
   created_at: string;
 }
@@ -77,7 +79,11 @@ const Conversation = ({
                   : 'bg-gray-100 text-gray-800 rounded-bl-md'
               }`}
             >
-              <p className="whitespace-pre-wrap">{message.content}</p>
+              <p className="whitespace-pre-wrap">
+                {message.message_type === 'text'
+                  ? message.content
+                  : message.stt_content}
+              </p>
               <div className="flex items-center justify-between mt-2">
                 <p
                   className={`text-xs ${message.role === 'user' ? 'text-blue-100' : 'text-gray-500'}`}

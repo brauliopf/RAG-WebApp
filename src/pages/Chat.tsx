@@ -4,28 +4,35 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Header } from '@/components/layout';
 import { Conversation, MessageInput, ThreadList } from '@/components/chat';
-import { useChat } from '@/hooks/useChat';
+import { useChat } from '@/hooks/use-chat';
 
 const Chat = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const {
     messages,
-    threads,
+    audioBlob,
     activeThreadId,
-    activeThread,
+    threads,
     isLoading,
     isLoadingThreads,
+    isRecording,
+    isAudioSupported,
+    isCanceled,
+    error,
+    sendTextMessage,
+    sendAudioMessage,
     createNewThread,
     switchToThread,
-    sendMessage,
     deleteThread,
     renameThread,
     reportMessage,
+    startRecording,
+    stopRecording,
+    cancelRecording,
   } = useChat();
 
   const handleThreadSelect = (threadId: string) => {
     switchToThread(threadId);
-    // Close sidebar on mobile after selection
     setIsSidebarOpen(false);
   };
 
@@ -112,9 +119,19 @@ const Chat = () => {
               />
             </div>
             <MessageInput
-              onSendMessage={sendMessage}
+              onSendAudio={sendAudioMessage}
+              onSendMessage={sendTextMessage}
+              onStartRecording={startRecording}
+              onStopRecording={stopRecording}
+              onCancelRecording={cancelRecording}
               isLoading={isLoading}
               disabled={!activeThreadId}
+              threadId={activeThreadId}
+              isRecording={isRecording}
+              isAudioSupported={isAudioSupported}
+              error={error}
+              audioBlob={audioBlob}
+              isCanceled={isCanceled}
             />
           </Card>
         </div>
