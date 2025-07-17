@@ -15,8 +15,13 @@ const config = {
       chat: {
         query: '/api/v1/query',
       },
-      redis: {
-        set: '/api/v1/redis/set',
+      app: {
+        s3: {
+          uploadUrl: '/api/v1/s3/uploadUrl',
+        },
+        redis: {
+          set: '/api/v1/redis/set',
+        },
       },
     },
   },
@@ -42,8 +47,13 @@ export const apiEndpoints = {
   chat: {
     query: () => getApiUrl(config.api.endpoints.chat.query),
   },
-  redis: {
-    set: () => getApiUrl(config.api.endpoints.redis.set),
+  app: {
+    s3: {
+      uploadUrl: () => getApiUrl(config.api.endpoints.app.s3.uploadUrl),
+    },
+    redis: {
+      set: () => getApiUrl(config.api.endpoints.app.redis.set),
+    },
   },
 };
 
