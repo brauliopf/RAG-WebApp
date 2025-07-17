@@ -351,6 +351,15 @@ export const useChat = (): UseChat => {
     }
   };
 
+  const updateThreadTitle = async (userInput: string) => {
+    // Update thread title if this is the first message
+    const currentThread = threads.find((t) => t.id === activeThreadId);
+    if (currentThread && currentThread.title?.startsWith('Chat ')) {
+      const newTitle = generateThreadTitle(userInput);
+      await renameThread(activeThreadId, newTitle);
+    }
+  };
+
   const sendTextMessage = async (userInput: string): Promise<void> => {
     if (!activeThreadId || !user) return;
 
@@ -367,11 +376,7 @@ export const useChat = (): UseChat => {
     }
 
     // Update thread title if this is the first message
-    const currentThread = threads.find((t) => t.id === activeThreadId);
-    if (currentThread && currentThread.title?.startsWith('Chat ')) {
-      const newTitle = generateThreadTitle(userInput);
-      await renameThread(activeThreadId, newTitle);
-    }
+    await updateThreadTitle(userInput);
 
     setIsLoading(true);
 
@@ -521,21 +526,77 @@ export const useChat = (): UseChat => {
       setMessages((prev) => [...prev, userAudioMessage]);
     }
 
-    // Update the thread timestamp
-    await updateThreadTimestamp(activeThreadId);
+    await updateThreadTitle(transcription.text);
 
-    // Update the threads order
-    setThreads((prev) => {
-      const updated = [...prev];
-      const threadIndex = updated.findIndex((t) => t.id === activeThreadId);
-      if (threadIndex > 0) {
-        const [thread] = updated.splice(threadIndex, 1);
-        updated.unshift({ ...thread, updated_at: new Date().toISOString() });
+    setIsLoading(true);
+
+    // GENERATE RESPONSE
+    try {
+      // Use authenticated request with JWT token
+      const response = await makeAuthenticatedRequest(
+        apiEndpoints.chat.query(),
+        {
+          method: 'POST',
+          body: JSON.stringify({
+            query: transcription.text,
+            thread_id: activeThreadId,
+            use_agentic: true,
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
       }
-      return updated;
-    });
 
-    setIsLoading(false);
+      const data = await response.json();
+      const assistantMessage = await saveMessage(
+        data.answer ||
+          "I apologize, but I couldn't generate a response. Please try again.",
+        'assistant',
+        'text',
+        null,
+        activeThreadId
+      );
+
+      if (assistantMessage) {
+        setMessages((prev) => [...prev, assistantMessage]);
+      }
+
+      // Update the thread timestamp
+      await updateThreadTimestamp(activeThreadId);
+
+      // Update the threads order
+      setThreads((prev) => {
+        const updated = [...prev];
+        const threadIndex = updated.findIndex((t) => t.id === activeThreadId);
+        if (threadIndex > 0) {
+          const [thread] = updated.splice(threadIndex, 1);
+          updated.unshift({ ...thread, updated_at: new Date().toISOString() });
+        }
+        return updated;
+      });
+    } catch (error) {
+      console.error('Error sending audio message:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to send audio message. Please try again.',
+        variant: 'destructive',
+      });
+
+      const errorMessage = await saveMessage(
+        "I'm having trouble connecting right now. Please try again in a moment.",
+        'assistant',
+        'text',
+        '',
+        activeThreadId
+      );
+      if (errorMessage) {
+        setMessages((prev) => [...prev, errorMessage]);
+      }
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const startRecording = useCallback(async () => {
