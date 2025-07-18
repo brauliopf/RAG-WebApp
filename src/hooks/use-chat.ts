@@ -304,14 +304,14 @@ export const useChat = (): UseChat => {
     setIsLoading(true);
 
     try {
-      // Upload the audio to S3
-      const uploadFileToS3Response = await AudioService.uploadFileToS3(
-        audioBlob,
-        activeThreadId
-      );
-      if (uploadFileToS3Response.status !== 'success') {
-        throw new Error(`HTTP error! status: ${uploadFileToS3Response.status}`);
-      }
+      // // Upload the audio to S3
+      // const uploadFileToS3Response = await AudioService.uploadFileToS3(
+      //   audioBlob,
+      //   activeThreadId
+      // );
+      // if (uploadFileToS3Response.status !== 'success') {
+      //   throw new Error(`HTTP error! status: ${uploadFileToS3Response.status}`);
+      // }
 
       // Get the transcription from the audio
       const transcription = await transcribeWithWhisper(audioBlob);
