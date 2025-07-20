@@ -13,7 +13,7 @@ import {
   activateDocGroup,
   deactivateDocGroup,
   loadDocuments as loadAllDocuments,
-} from '@/components/admin';
+} from '@/components/knowledge-base';
 import { supabase } from '@/integrations/supabase/client';
 
 const FEATURE_FLAG_KEY = 'add_content_collections';
